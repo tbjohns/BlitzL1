@@ -51,4 +51,31 @@ namespace BlitzL1 {
     return result;
   }
 
+  CSCDatasetFromPointers::CSCDatasetFromPointers(index_t *indices,
+                                           size_t *indptr,
+                                           value_t *data,
+                                           value_t *labels,
+                                           index_t n,
+                                           index_t d,
+                                           size_t nnz) {
+    this->n = n;
+    this->d = d;
+    this->nnz = nnz;
+    this->labels = labels;
+    columns_vec.clear();
+    columns_vec.reserve(d);
+    for (index_t j = 0; j < d; ++j) {
+      size_t offset = indptr[j];
+      index_t col_nnz = (index_t) (indptr[j+1] - offset);
+      value_t *col_data = data + offset;
+      index_t *col_indices = indices + offset;
+      Column *col = new ColumnFromPointers(col_indices, col_data, col_nnz, n);
+      columns_vec.push_back(col);
+    }
+  }
+
+  value_t CSCDatasetFromPointers::get_label(index_t i) const {
+    return labels[i]; 
+  }
+
 } // namespace BlitzL1

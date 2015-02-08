@@ -10,7 +10,7 @@ using std::endl;
 
 using namespace BlitzL1;
 
-void test_column() {
+void test_ColumnFromPointers() {
   value_t values[3] = {2.0, 3.0, 5.0};
   index_t indices[3] = {0, 1, 9};
   index_t nnz = 3;
@@ -40,7 +40,37 @@ void test_column() {
     cerr << "Test ColumnFromPointers h_norm_sq failed" << endl;
 }
 
+void test_CSCDatasetFromPointers() {
+  size_t indptr[6] = {0, 1, 2, 4, 6, 7};
+  index_t indices[7] = {1, 0, 1, 2, 1, 2, 0};
+  value_t values[7] = {-2, 1, 3, 1, 1, 2, 1};
+  value_t labels[3] = {-1, 0.5, 1.5};
+  Dataset *data = new CSCDatasetFromPointers(indices, indptr, values, labels, 3, 5, 7);
+
+  vector<value_t> vec;
+  vec.push_back(1);
+  vec.push_back(2);
+  vec.push_back(3);
+
+  if (data->get_column(0)->l2_norm_sq() != 4.0)
+    cerr << "Test CSCDatasetFromPointers column 0 failed" << endl;
+  if (data->get_column(1)->inner_product(vec) != 1.0)
+    cerr << "Test CSCDatasetFromPointers column 1 failed" << endl;
+  if (data->get_column(2)->inner_product(vec) != 9.0)
+    cerr << "Test CSCDatasetFromPointers column 2 failed" << endl;
+  if (data->get_column(3)->mean() != 1.0)
+    cerr << "Test CSCDatasetFromPointers column 3 failed" << endl;
+  if (data->get_column(4)->inner_product(vec) != 1.0)
+    cerr << "Test CSCDatasetFromPointers column 4 failed" << endl;
+  if (data->get_label(0) != -1.0)
+    cerr << "Test CSCDatasetFromPointers label 0 failed" << endl;
+  if (data->get_label(2) != 1.5)
+    cerr << "Test CSCDatasetFromPointers last label failed" << endl;
+}
+
 int main() {
-  test_column();
+  test_ColumnFromPointers();
+  test_CSCDatasetFromPointers();
+  cout << "Common tests completed" << endl;
   return 0;
 }

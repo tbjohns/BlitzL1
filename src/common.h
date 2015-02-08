@@ -7,6 +7,7 @@ namespace BlitzL1 {
 
   typedef unsigned int index_t;
   typedef double value_t; 
+  typedef std::size_t size_t;
 
   class Column {
     protected:
@@ -40,22 +41,38 @@ namespace BlitzL1 {
   };
 
   class Dataset {
-
-      value_t *labels;
+    protected:
       std::vector<Column*> columns_vec;
-      index_t n;
-      index_t d;
-      index_t nnz;
+      index_t n;   // # training examples
+      index_t d;   // # features
+      index_t nnz; // # nonzero entries
 
+    public:
       const Column* get_column(index_t j) const { return columns_vec[j]; }
-      value_t get_label(index_t i) const { return labels[i]; }
+      virtual value_t get_label(index_t i) const = 0;
+      index_t get_nnz() const { return nnz; }
+      index_t get_n() const { return n; }
+      index_t get_d() const { return d; }
+  };
 
+  class CSCDatasetFromPointers : public Dataset {
+    value_t *labels;  
+
+    public:
+      CSCDatasetFromPointers(index_t *indices,
+                          size_t *indptr,
+                          value_t *data,
+                          value_t *labels,
+                          index_t n,
+                          index_t d,
+                          size_t nnz);
+      value_t get_label(index_t i) const;
   };
 
   struct ProblemOptions {
     double max_time;  
     double min_time;
-    value_t epsilon;
+    value_t tolerance;
     bool verbose;
   };
 

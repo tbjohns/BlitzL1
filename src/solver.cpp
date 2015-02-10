@@ -21,7 +21,9 @@ void Solver::solve(Dataset *data,
                    char* log_directory) {
 
   Loss *loss_function;
-  if (strcmp(loss_type, "squared") == 0)
+  if (strcmp(loss_type, "logistic") == 0)
+    loss_function = new LogisticLoss();
+  else if (strcmp(loss_type, "squared") == 0)
     loss_function = new SquaredLoss();
   else
     throw loss_type;

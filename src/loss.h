@@ -43,6 +43,10 @@ namespace BlitzL1 {
 
   class LogisticLoss : public Loss {
     public:
+      LogisticLoss();
+
+      const value_t L;
+
       value_t dual_obj(
         const std::vector<value_t> &theta,
         Dataset *data);

@@ -123,6 +123,13 @@ class _Solution(object):
     self.x = x
     self.intercept = intercept
 
+  def _compute_Ax(self, A):
+    if sparse.issparse(A):
+      result = A * np.mat(self.x).T + self.intercept
+      return np.array(result).flatten()
+    else:
+      return np.dot(A, self.x) + self.intercept
+
 class LassoSolution(_Solution):
   def predict(self, A):
     return self._compute_Ax(A)
@@ -131,16 +138,21 @@ class LassoSolution(_Solution):
     predictions = self.predict(A)
     return np.linalg.norm(b - predictions) ** 2
 
-  def _compute_Ax(self, A):
-    if sparse.issparse(A):
-      result = A * np.mat(self.x).T + self.intercept
-      return np.array(result).flatten()
-    else:
-      return np.dot(A, self.x) + self.intercept
+class LogRegSolution(_Solution):
+  def predict(self, A):
+    Ax = self._compute_Ax(A)
+    return 1 / (1 + np.exp(-Ax))
+
+  def evaluate_loss(self, A, b):
+    exp_mbAx = np.exp(-b * self._compute_Ax(A))
+    return sum(np.log1p(exp_mbAx))
 
 class LassoProblem(_L1Problem):
   LOSS_TYPE = "squared"
   SOLUTION_TYPE = LassoSolution
 
+class LogRegProblem(_L1Problem):
+  LOSS_TYPE = "logistic"
+  SOLUTION_TYPE = LogRegSolution
 
 

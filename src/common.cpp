@@ -94,12 +94,37 @@ namespace BlitzL1 {
     return result;
   }
 
+  value_t l1_norm(value_t *vec, index_t len) {
+    value_t result = 0.0;
+    for (index_t ind = 0; ind < len; ++ind)
+      result += std::abs(vec[ind]);
+    return result;
+  }
+
   value_t inner_product(const vector<value_t> &vec1, 
                         const vector<value_t> &vec2) {
     value_t result = 0.0;
     for (size_t ind = 0; ind < vec1.size(); ++ind)
       result += vec1[ind] * vec2[ind];
     return result;
+  }
+
+  value_t max_abs(const vector<value_t> &vec) {
+    value_t result = 0.0;
+    for (size_t ind = 0; ind < vec.size(); ++ind) {
+      if (std::abs(vec[ind]) > result)
+        result = std::abs(vec[ind]);
+    }
+    return result;
+  }
+
+  value_t soft_threshold(value_t value, value_t threshold) {
+    if (value > threshold)
+      return value - threshold;
+    else if (value < -threshold)
+      return value + threshold;
+    else
+      return 0.0;
   }
 
 } // namespace BlitzL1

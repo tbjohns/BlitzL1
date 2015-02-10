@@ -1,31 +1,34 @@
-#include "common.h"
-#include "problem.h"
+#pragma once 
 
+#include "common.h"
 #include <vector>
 
 namespace BlitzL1 {
 
   class Solver {
-    protected:
-      bool verbose;
-      value_t min_time;
-      value_t max_time;
-      
+    private:
       std::vector<value_t> theta;
       std::vector<value_t> ATtheta;
       std::vector<value_t> phi;
       std::vector<value_t> ATphi;
+      std::vector<value_t> aux_dual;
 
-      std::vector<bool> is_eliminated;
       std::vector<index_t> prioritized_features;
+      std::vector<index_t> feature_priorities;
+
+      bool verbose;
+      value_t min_time;
+      value_t max_time;
 
     public:
-      void solve(const Problem &prb,
+      Solver() {}
+
+      void solve(Dataset *data,
                  value_t lambda,
-                 value_t &x,
+                 char* loss_type,
+                 value_t* x,
                  value_t &intercept,
                  char* log_directory);
-      
   };
 
 }

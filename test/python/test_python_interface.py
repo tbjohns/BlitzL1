@@ -7,9 +7,9 @@ from scipy import sparse
 
 pwd = os.path.abspath(os.path.dirname(__file__))
 
-sys.path.append(os.path.join(pwd, "../../python"))
+sys.path.append(os.path.join(pwd, "../.."))
 
-import l1_problem
+import python as blitzl1
 
 def test_DataLoad():
 
@@ -22,7 +22,7 @@ def test_DataLoad():
   col_norm_last = np.linalg.norm(A[:,d-1])
 
   A_csc = sparse.csc_matrix(A)
-  prob = l1_problem.L1Problem(A_csc, b)
+  prob = blitzl1.LassoProblem(A_csc, b)
   if prob._get_A_column_norm(0) != col_norm_0:
     print "CSC data load failed (col_norm_0)"
   if prob._get_A_column_norm(d-1) != col_norm_last:
@@ -31,7 +31,7 @@ def test_DataLoad():
     print "CSC labels load failed"
 
   A_csr = sparse.csr_matrix(A)
-  prob = l1_problem.L1Problem(A_csr, b)
+  prob = blitzl1.LassoProblem(A_csr, b)
   if prob._get_A_column_norm(0) != col_norm_0:
     print prob._get_A_column_norm(0)
     print col_norm_0
@@ -42,7 +42,7 @@ def test_DataLoad():
     print "CSR labels load failed"
 
   A_float16 = sparse.csr_matrix(A, dtype=np.float16)
-  prob = l1_problem.L1Problem(A_float16, b)
+  prob = blitzl1.LassoProblem(A_float16, b)
   diff = abs(prob._get_A_column_norm(d-1) - col_norm_last)
   if diff > 0.1:
     print "float16 data load failed (col_norm_last)"

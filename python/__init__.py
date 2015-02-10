@@ -1,1 +1,2 @@
-from l1_problem import *
+from _l1_problem import LassoProblem
+

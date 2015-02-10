@@ -3,7 +3,7 @@
 using namespace BlitzL1;
 
 void Loss::compute_Ax(
-        const std::vector<value_t> &x,
+        const value_t *x,
         value_t intercept,
         Dataset *data,
         std::vector<value_t> &result) {

@@ -1,6 +1,5 @@
 import os
-import sys
-import numpy as np
+import numpy as np 
 import ctypes
 from scipy import sparse
 
@@ -15,38 +14,36 @@ _pointer = ctypes.POINTER(ctypes.c_void_p)
 _value_t_p = ctypes.POINTER(_value_t)
 _index_t_p = ctypes.POINTER(_index_t)
 _size_t_p = ctypes.POINTER(_size_t)
+_char_p = ctypes.c_char_p
 
 
 _lib.BlitzL1_new_sparse_dataset.restype = _pointer
-_lib.BlitzL1_new_sparse_dataset.argtypes = [_index_t_p,
-                                            _size_t_p,
-                                            _value_t_p,
-                                            _value_t_p,
-                                            _index_t,
-                                            _index_t,
-                                            _size_t]
+_lib.BlitzL1_new_sparse_dataset.argtypes = [_index_t_p, _size_t_p, _value_t_p, _value_t_p, _index_t, _index_t, _size_t]
 _lib.BlitzL1_get_column_norm.restype = _value_t
 _lib.BlitzL1_get_column_norm.argtype = [_pointer, _index_t]
 _lib.BlitzL1_get_label_i.restype = _value_t
 _lib.BlitzL1_get_label_i.argtype = [_pointer, _index_t]
+_lib.BlitzL1_new_solver.restype = _pointer
+_lib.BlitzL1_new_solver.argtype = None
+_lib.BlitzL1_solve_problem.restype = None
+_lib.BlitzL1_solve_problem.argtype = [_pointer, _pointer, _value_t, _char_p, _value_t_p, _value_t]
 
+_solver = _lib.BlitzL1_new_solver()
 
 def data_as(obj, ctypes_type, force_return_obj=False):
-  if force_return_obj:
-    return_obj = obj
-  else:
-    return_obj = None
+  return_obj = obj
   if obj.dtype != ctypes_type:
     obj = obj.astype(ctypes_type)
     return_obj = obj
-  return (return_obj, obj.ctypes.data_as(ctypes_type).contents)
+  return (return_obj, obj.ctypes.data_as(ctypes_type))
 
 
-class L1Problem:
+class _L1Problem:
   def __init__(self, A, b):
     self._load_dataset(A, b)
 
   def _load_dataset(self, A, b):
+    self.shape = A.shape
     if sparse.issparse(A):
       if sparse.isspmatrix_csc(A):
         format_changed = False
@@ -69,4 +66,20 @@ class L1Problem:
 
   def _get_label_i(self, i):
     return _lib.BlitzL1_get_label_i(self.dataset, _index_t(i))
+
+  def solve(self, lam):
+    lambda_arg = _value_t(lam)
+    (n, d) = self.shape
+    (x, x_arg) = data_as(np.zeros(d), _value_t_p)
+    intercept_arg = _value_t()
+    loss_arg = _char_p(self.loss_type())
+    _lib.BlitzL1_solve_problem(_solver, self.dataset, lambda_arg, loss_arg, x_arg, ctypes.byref(intercept_arg))
+    print intercept_arg.value
+    print x
+    
+
+class LassoProblem(_L1Problem):
+  def loss_type(self):
+    return "squared"
+
 

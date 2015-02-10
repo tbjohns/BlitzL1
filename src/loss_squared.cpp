@@ -4,6 +4,8 @@ using std::vector;
 
 using namespace BlitzL1;
 
+SquaredLoss::SquaredLoss() : L(1.0) {}
+
 value_t SquaredLoss::primal_loss(const vector<value_t> &theta,
                                  const vector<value_t> &aux_dual) {
   return 0.5 * l2_norm_sq(theta);
@@ -21,7 +23,7 @@ value_t SquaredLoss::dual_obj(const vector<value_t> &theta,
 void SquaredLoss::compute_dual_points(
                               vector<value_t> &theta,
                               vector<value_t> &aux_dual,
-                              const vector<value_t> &x,
+                              const value_t *x,
                               value_t intercept,
                               Dataset* data) {
   compute_Ax(x, intercept, data, theta);
@@ -39,4 +41,3 @@ void SquaredLoss::compute_H(vector<value_t> &H,
   H.assign(n, 1.0);
 }
 
-value_t SquaredLoss::L() { return 1.0; }

@@ -86,6 +86,25 @@ void test_Math() {
   vec2[9] = -1.0;
   if (inner_product(vec2, vec) != -15.0)
     cerr << "Test Math inner_product failed" << endl;
+
+  vector<value_t> vec3;
+  vec3.push_back(-1.0);
+  vec3.push_back(-7.8);
+  vec3.push_back(0.0);
+  vec3.push_back(4.4);
+  if (max_abs(vec3) != 7.8)
+    cerr << "Test Math max_abs failed" << endl;
+
+  if (soft_threshold(-5.5, 5.5) != 0.0 ||
+      soft_threshold(-5.5, 2.0) != -3.5 ||
+      soft_threshold(-3, 5.5) != 0.0 ||
+      soft_threshold(6, 2) != 4.0)
+    cerr << "Test Math soft_threshold failed" << endl;
+
+  value_t x[5] = {-1.0, -1.5, 0.0, 0.0, 3.3};
+  if (l1_norm(x, 5) != 5.8)
+    cerr << "Test Math l1_norm failed" << endl; 
+
 }
 
 int main() {

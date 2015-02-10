@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include <math.h>
+#include <cmath>
 
 namespace BlitzL1 {
 
@@ -75,7 +75,9 @@ namespace BlitzL1 {
   };
 
   value_t l2_norm_sq(const std::vector<value_t> &vec);
+  value_t l1_norm(value_t *x, index_t d);
   value_t inner_product(const std::vector<value_t> &vec1, 
                         const std::vector<value_t> &vec2);
-
+  value_t max_abs(const std::vector<value_t> &vec);
+  value_t soft_threshold(value_t value, value_t threshold);
 }

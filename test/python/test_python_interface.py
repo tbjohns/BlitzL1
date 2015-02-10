@@ -49,7 +49,6 @@ def test_DataLoad():
 
 def main():
   test_DataLoad()
-  print "Python interface tests completed"
 
 
 main()

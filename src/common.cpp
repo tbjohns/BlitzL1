@@ -1,5 +1,7 @@
 #include "common.h"
 
+using std::vector;
+
 namespace BlitzL1 {
 
   value_t Column::l2_norm_centered() const {
@@ -19,7 +21,7 @@ namespace BlitzL1 {
     return;
   }
 
-  value_t ColumnFromPointers::inner_product(std::vector<value_t> vec) const {
+  value_t ColumnFromPointers::inner_product(vector<value_t> vec) const {
     value_t result = 0.0;
     for (index_t ind = 0; ind < nnz; ++ind) {
       index_t i = indices[ind];
@@ -28,7 +30,14 @@ namespace BlitzL1 {
     return result;
   }
 
-  value_t ColumnFromPointers::h_norm_sq(std::vector<value_t> h_values) const {
+  void ColumnFromPointers::add_multiple(vector<value_t> &target, value_t scaler) const {
+    for (index_t ind = 0; ind < nnz; ++ind) {
+      index_t i = indices[ind];
+      target[i] += values[ind] * scaler;
+    }
+  }
+
+  value_t ColumnFromPointers::h_norm_sq(vector<value_t> h_values) const {
     value_t result = 0.0;
     for (index_t ind = 0; ind < nnz; ++ind) {
       index_t i = indices[ind];
@@ -76,6 +85,21 @@ namespace BlitzL1 {
 
   value_t DatasetFromCSCPointers::get_label(index_t i) const {
     return labels[i]; 
+  }
+
+  value_t l2_norm_sq(const vector<value_t> &vec) {
+    value_t result = 0.0;
+    for (size_t ind = 0; ind < vec.size(); ++ind)
+      result += vec[ind] * vec[ind];
+    return result;
+  }
+
+  value_t inner_product(const vector<value_t> &vec1, 
+                        const vector<value_t> &vec2) {
+    value_t result = 0.0;
+    for (size_t ind = 0; ind < vec1.size(); ++ind)
+      result += vec1[ind] * vec2[ind];
+    return result;
   }
 
 } // namespace BlitzL1

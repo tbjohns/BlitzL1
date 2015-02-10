@@ -38,6 +38,10 @@ void test_ColumnFromPointers() {
 
   if (c->h_norm_sq(vec) != 272.0)
     cerr << "Test ColumnFromPointers h_norm_sq failed" << endl;
+
+  c->add_multiple(vec, -2.0);
+  if (vec[9] != 0.0 || vec[0] != -3.0)
+    cerr << "Test ColumnFromPointers add_multiple failed" << endl;
 }
 
 void test_DatasetFromCSCPointers() {
@@ -68,9 +72,25 @@ void test_DatasetFromCSCPointers() {
     cerr << "Test DatasetFromCSCPointers last label failed" << endl;
 }
 
+void test_Math() {
+  vector<value_t> vec;
+  vec.assign(10, 0.0);
+  vec[0] = -5.0;
+  vec[3] = 2.0;
+  vec[9] = 12.0;
+  if (l2_norm_sq(vec) != 173.0)
+    cerr << "Test Math l2_norm_sq failed" << endl;
+
+  vector<value_t> vec2;
+  vec2.assign(10, 1.0);
+  vec2[9] = -1.0;
+  if (inner_product(vec2, vec) != -15.0)
+    cerr << "Test Math inner_product failed" << endl;
+}
+
 int main() {
   test_ColumnFromPointers();
   test_DatasetFromCSCPointers();
-  cout << "Common tests completed" << endl;
+  test_Math();
   return 0;
 }

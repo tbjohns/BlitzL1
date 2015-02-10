@@ -8,6 +8,7 @@ namespace BlitzL1 {
   typedef double value_t; 
   typedef int index_t;
   typedef int nnz_t;
+  typedef std::size_t size_t;
 
   class Column {
     protected:
@@ -19,6 +20,8 @@ namespace BlitzL1 {
       index_t get_nnz() const { return nnz; } 
       virtual value_t inner_product(std::vector<value_t> vec) const = 0;
       virtual value_t h_norm_sq(std::vector<value_t> h_values) const = 0;
+      virtual void add_multiple(std::vector<value_t> &target, 
+                                value_t scaler) const = 0;
       virtual value_t mean() const = 0;
       virtual value_t l2_norm_sq() const = 0;
       value_t l2_norm() const { return sqrt(l2_norm_sq()); }
@@ -35,6 +38,8 @@ namespace BlitzL1 {
                          index_t nnz,
                          index_t length);
       value_t inner_product(std::vector<value_t> vec) const;
+      void add_multiple(std::vector<value_t> &target, 
+                        value_t scaler) const;
       value_t h_norm_sq(std::vector<value_t> h_values) const;
       value_t mean() const;
       value_t l2_norm_sq() const;
@@ -68,5 +73,9 @@ namespace BlitzL1 {
                           nnz_t nnz);
       value_t get_label(index_t i) const;
   };
+
+  value_t l2_norm_sq(const std::vector<value_t> &vec);
+  value_t inner_product(const std::vector<value_t> &vec1, 
+                        const std::vector<value_t> &vec2);
 
 }

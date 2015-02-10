@@ -1,7 +1,5 @@
 CXX = g++
 
-INSTALL_DIR = ${PWD}
-
 CPP_FILES = $(wildcard src/*.cpp)
 OBJ_FILES = $(patsubst src/%.cpp,obj/%.o,$(CPP_FILES)) 
 TEST_FILES = $(wildcard test/cpp/*.cpp)
@@ -14,7 +12,7 @@ SLIB = libblitzl1.so
 all: $(SLIB) 
 
 $(SLIB): $(OBJ_FILES) | lib
-	$(CXX) $(FLAGS) -shared -o ${INSTALL_DIR}/lib/$@ $^
+	$(CXX) $(FLAGS) -shared -o lib/$@ $^
 
 obj/%.o: src/%.cpp
 	$(CXX) $(FLAGS) -fPIC -c -o $@ $<
@@ -27,10 +25,10 @@ obj:
 lib:
 	mkdir -p lib
 
-test: $(SLIB) $(TEST_BIN)
+test: $(TEST_BIN)
 
-test/bin/%: test/cpp/%.cpp | test_bin
-	$(CXX) $(FLAGS) -L${INSTALL_DIR}/lib -lblitzl1 -o $@ $<
+test/bin/%: $(OBJ_FILES) test/cpp/%.cpp | test_bin
+	$(CXX) $(FLAGS) -o $@ $^ 
 
 test_bin:
 	mkdir -p test/bin

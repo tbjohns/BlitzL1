@@ -1,8 +1,5 @@
 *.swp
-<<<<<<< HEAD
 *.pyc
-=======
->>>>>>> b561e78f1466449cbd7e2a139a81e04b8e93a54f
 
 bin
 obj

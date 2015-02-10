@@ -40,12 +40,21 @@ void test_ColumnFromPointers() {
     cerr << "Test ColumnFromPointers h_norm_sq failed" << endl;
 }
 
+<<<<<<< HEAD
 void test_DatasetFromCSCPointers() {
   nnz_t indptr[6] = {0, 1, 2, 4, 6, 7};
   index_t indices[7] = {1, 0, 1, 2, 1, 2, 0};
   value_t values[7] = {-2, 1, 3, 1, 1, 2, 1};
   value_t labels[3] = {-1, 0.5, 1.5};
   Dataset *data = new DatasetFromCSCPointers(indices, indptr, values, labels, 3, 5, 7);
+=======
+void test_CSCDatasetFromPointers() {
+  size_t indptr[6] = {0, 1, 2, 4, 6, 7};
+  index_t indices[7] = {1, 0, 1, 2, 1, 2, 0};
+  value_t values[7] = {-2, 1, 3, 1, 1, 2, 1};
+  value_t labels[3] = {-1, 0.5, 1.5};
+  Dataset *data = new CSCDatasetFromPointers(indices, indptr, values, labels, 3, 5, 7);
+>>>>>>> b561e78f1466449cbd7e2a139a81e04b8e93a54f
 
   vector<value_t> vec;
   vec.push_back(1);

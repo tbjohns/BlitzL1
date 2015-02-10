@@ -15,6 +15,7 @@ _value_t_p = ctypes.POINTER(_value_t)
 _index_t_p = ctypes.POINTER(_index_t)
 _size_t_p = ctypes.POINTER(_size_t)
 _char_p = ctypes.c_char_p
+_bool = ctypes.c_bool
 
 
 _lib.BlitzL1_new_sparse_dataset.restype = _pointer
@@ -27,8 +28,48 @@ _lib.BlitzL1_new_solver.restype = _pointer
 _lib.BlitzL1_new_solver.argtype = None
 _lib.BlitzL1_solve_problem.restype = None
 _lib.BlitzL1_solve_problem.argtype = [_pointer, _pointer, _value_t, _char_p, _value_t_p, _value_t]
+_lib.BlitzL1_set_tolerance.restype = None
+_lib.BlitzL1_set_tolerance.argtype = [_pointer, _value_t]
+_lib.BlitzL1_get_tolerance.restype = _value_t
+_lib.BlitzL1_get_tolerance.argtype = None
+_lib.BlitzL1_set_max_time.restype = None
+_lib.BlitzL1_set_max_time.argtype = [_pointer, _value_t]
+_lib.BlitzL1_get_max_time.restype = _value_t
+_lib.BlitzL1_get_max_time.argtype = None
+_lib.BlitzL1_set_use_intercept.restype = None
+_lib.BlitzL1_set_use_intercept.argtype = [_pointer, _bool]
+_lib.BlitzL1_get_use_intercept.restype = _bool
+_lib.BlitzL1_get_use_intercept.argtype = None
+_lib.BlitzL1_set_verbose.restype = None
+_lib.BlitzL1_set_verbose.argtype = [_pointer, _bool]
+_lib.BlitzL1_get_verbose.restype = _bool
+_lib.BlitzL1_get_verbose.argtype = None
 
 _solver = _lib.BlitzL1_new_solver()
+
+def set_tolerance(value):
+  _lib.BlitzL1_set_tolerance(_solver, _value_t(value))
+
+def get_tolerance():
+  return _lib.BlitzL1_get_tolerance(_solver)
+
+def set_max_time(value):
+  _lib.BlitzL1_set_max_time(_solver, _value_t(value))
+
+def get_max_time():
+  return _lib.BlitzL1_get_max_time(_solver)
+
+def set_use_intercept(value):
+  _lib.BlitzL1_set_use_intercept(_solver, _bool(value))
+
+def get_use_intercept():
+  return _lib.BlitzL1_get_use_intercept(_solver)
+
+def set_verbose(value):
+  _lib.BlitzL1_set_verbose(_solver, _bool(value))
+
+def get_verbose():
+  return _lib.BlitzL1_get_verbose(_solver)
 
 def data_as(obj, ctypes_type, force_return_obj=False):
   return_obj = obj

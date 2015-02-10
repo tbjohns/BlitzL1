@@ -32,15 +32,55 @@ extern "C" {
     return new Solver();
   }
 
+  void BlitzL1_set_tolerance(Solver *solver, value_t value) {
+    solver->set_tolerance(value);
+  }
+
+  value_t BlitzL1_get_tolerance(Solver *solver) {
+    return solver->get_tolerance();
+  }
+
+  void BlitzL1_set_max_time(Solver *solver, value_t value) {
+    solver->set_max_time(value);
+  }
+
+  value_t BlitzL1_get_max_time(Solver *solver) {
+    return solver->get_max_time();
+  }
+
+  void BlitzL1_set_min_time(Solver *solver, value_t value) {
+    solver->set_min_time(value);
+  }
+
+  value_t BlitzL1_get_min_time(Solver *solver) {
+    return solver->get_min_time();
+  }
+
+  void BlitzL1_set_use_intercept(Solver *solver, bool value) {
+    solver->set_use_intercept(value);
+  }
+
+  bool BlitzL1_get_use_intercept(Solver *solver) {
+    return solver->get_use_intercept();
+  }
+
+  void BlitzL1_set_verbose(Solver *solver, bool value) {
+    solver->set_verbose(value);
+  }
+
+  bool BlitzL1_get_verbose(Solver *solver) {
+    return solver->get_verbose();
+  }
+
   void BlitzL1_solve_problem(Solver *solver,
                            Dataset *data,
                            value_t lambda,
                            char *loss_type,
                            value_t *x,
                            value_t &intercept) {
-    intercept = 2.5;
     solver->solve(data, lambda, loss_type, x, intercept, "");
   }
+
                            
 
 }

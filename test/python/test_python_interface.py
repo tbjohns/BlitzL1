@@ -47,8 +47,34 @@ def test_DataLoad():
   if diff > 0.1:
     print "float16 data load failed (col_norm_last)"
 
+def test_SolverOptions():
+  blitzl1.set_tolerance(0.027)  
+  if blitzl1.get_tolerance() != 0.027:
+    print "test SolverOptions tolerance failed"
+
+  blitzl1.set_max_time(557.0)
+  if blitzl1.get_max_time() != 557.0:
+    print "test SolverOptions max_time failed"
+
+  blitzl1.set_use_intercept(True)
+  if blitzl1.get_use_intercept() != True:
+    print "test SolverOptions use_intercept (True) failed"
+
+  blitzl1.set_use_intercept(False)
+  if blitzl1.get_use_intercept() != False:
+    print "test SolverOptions use_intercept (False) failed"
+
+  blitzl1.set_verbose(True)
+  if blitzl1.get_verbose() != True:
+    print "test SolverOptions verbose (True) failed"
+
+  blitzl1.set_verbose(False)
+  if blitzl1.get_verbose() != False:
+    print "test SolverOptions verbose (False) failed"
+
 def main():
   test_DataLoad()
+  test_SolverOptions()
 
 
 main()

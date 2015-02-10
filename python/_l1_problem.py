@@ -79,7 +79,8 @@ def data_as(obj, ctypes_type, force_return_obj=False):
   return (return_obj, obj.ctypes.data_as(ctypes_type))
 
 
-class _L1Problem:
+
+class _L1Problem(object):
   def __init__(self, A, b):
     self._load_dataset(A, b)
 
@@ -113,14 +114,33 @@ class _L1Problem:
     (n, d) = self.shape
     (x, x_arg) = data_as(np.zeros(d), _value_t_p)
     intercept_arg = _value_t()
-    loss_arg = _char_p(self.loss_type())
+    loss_arg = _char_p(self.LOSS_TYPE)
     _lib.BlitzL1_solve_problem(_solver, self.dataset, lambda_arg, loss_arg, x_arg, ctypes.byref(intercept_arg))
-    print intercept_arg.value
-    print x
+    return self.SOLUTION_TYPE(x, intercept_arg.value)
     
+class _Solution(object):
+  def __init__(self, x, intercept):
+    self.x = x
+    self.intercept = intercept
+
+class LassoSolution(_Solution):
+  def predict(self, A):
+    return self._compute_Ax(A)
+
+  def evaluate_loss(self, A, b):
+    predictions = self.predict(A)
+    return np.linalg.norm(b - predictions) ** 2
+
+  def _compute_Ax(self, A):
+    if sparse.issparse(A):
+      result = A * np.mat(self.x).T + self.intercept
+      return np.array(result).flatten()
+    else:
+      return np.dot(A, self.x) + self.intercept
 
 class LassoProblem(_L1Problem):
-  def loss_type(self):
-    return "squared"
+  LOSS_TYPE = "squared"
+  SOLUTION_TYPE = LassoSolution
+
 
 

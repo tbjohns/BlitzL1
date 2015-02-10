@@ -4,7 +4,7 @@ import numpy as np
 from scipy import sparse
 
 n = 10
-d = 3
+d = 10
 A = np.random.randn(n, d)
 b = np.random.randn(n)
 A_csc = sparse.csc_matrix(A)
@@ -14,5 +14,8 @@ print "tolerance is", blitzl1.get_tolerance()
 
 prob = blitzl1.LassoProblem(A_csc, b)
 
-#prob.solve(0.1)
+sol = prob.solve(0.01)
+
+from IPython import embed
+embed()
 

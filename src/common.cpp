@@ -16,16 +16,15 @@ namespace BlitzL1 {
       return sqrt(value_sq);
   }
 
-  ColumnFromPointers::ColumnFromPointers(
+  SparseColumnFromPointers::SparseColumnFromPointers(
       index_t *indices, value_t *values, index_t nnz, index_t length) {
     this->indices = indices;
     this->values = values;
     this->nnz = nnz;
     this->length = length;
-    return;
   }
 
-  value_t ColumnFromPointers::inner_product(vector<value_t> vec) const {
+  value_t SparseColumnFromPointers::inner_product(const vector<value_t> &vec) const {
     value_t result = 0.0;
     for (index_t ind = 0; ind < nnz; ++ind) {
       index_t i = indices[ind];
@@ -34,14 +33,14 @@ namespace BlitzL1 {
     return result;
   }
 
-  void ColumnFromPointers::add_multiple(vector<value_t> &target, value_t scaler) const {
+  void SparseColumnFromPointers::add_multiple(vector<value_t> &target, value_t scaler) const {
     for (index_t ind = 0; ind < nnz; ++ind) {
       index_t i = indices[ind];
       target[i] += values[ind] * scaler;
     }
   }
 
-  value_t ColumnFromPointers::h_norm_sq(vector<value_t> h_values) const {
+  value_t SparseColumnFromPointers::h_norm_sq(const vector<value_t> &h_values) const {
     value_t result = 0.0;
     for (index_t ind = 0; ind < nnz; ++ind) {
       index_t i = indices[ind];
@@ -50,18 +49,50 @@ namespace BlitzL1 {
     return result;
   }
 
-  value_t ColumnFromPointers::mean() const {
-    value_t sum = 0.0;
-    for (index_t ind = 0; ind < nnz; ++ind)
-      sum += values[ind];
+  value_t SparseColumnFromPointers::mean() const {
+    value_t sum = sum_array(values, nnz);
     return sum / (value_t) length;
   }
 
-  value_t ColumnFromPointers::l2_norm_sq() const {
+  value_t SparseColumnFromPointers::l2_norm_sq() const {
+    return BlitzL1::l2_norm_sq(values, nnz);
+  }
+
+  
+  DenseColumnFromPointers::DenseColumnFromPointers(
+          value_t *values, index_t length) {
+    this->values = values;
+    this->nnz = length;
+    this->length = length;
+  }
+
+  value_t DenseColumnFromPointers::inner_product(const vector<value_t> &vec) const {
     value_t result = 0.0;
-    for (index_t ind = 0; ind < nnz; ++ind)
-      result += values[ind] * values[ind];
+    for (index_t i = 0; i < length; ++i)
+      result += values[i] * vec[i];
     return result;
+  }
+
+
+  void DenseColumnFromPointers::add_multiple(vector<value_t> &target, value_t scaler) const {
+    for (index_t i = 0; i < length; ++i)
+      target[i] += values[i] * scaler;
+  }
+
+  value_t DenseColumnFromPointers::h_norm_sq(const vector<value_t> &h_values) const {
+    value_t result = 0.0;
+    for (index_t i = 0; i < length; ++i)
+      result += values[i] * values[i] * h_values[i];
+    return result;
+  }
+
+  value_t DenseColumnFromPointers::mean() const {
+    value_t sum = sum_array(values, length);
+    return sum / length;
+  }
+
+  value_t DenseColumnFromPointers::l2_norm_sq() const {
+    return BlitzL1::l2_norm_sq(values, length);
   }
 
   value_t Dataset::get_label(index_t i) const {
@@ -86,7 +117,7 @@ namespace BlitzL1 {
       index_t col_nnz = (index_t) (indptr[j+1] - offset);
       value_t *col_data = data + offset;
       index_t *col_indices = indices + offset;
-      Column *col = new ColumnFromPointers(col_indices, col_data, col_nnz, n);
+      Column *col = new SparseColumnFromPointers(col_indices, col_data, col_nnz, n);
       columns_vec.push_back(col);
     }
   }
@@ -99,12 +130,9 @@ namespace BlitzL1 {
     this->labels = labels;
     columns_vec.clear();
     columns_vec.reserve(d);
-    index_t *indices = new index_t[n];
-    for (index_t i = 0; i < n; ++i)
-      indices[i] = i;
     for (index_t j = 0; j < d; ++j) {
       value_t *col_data = data + j * n; 
-      Column *col = new ColumnFromPointers(indices, col_data, n, n);
+      Column *col = new DenseColumnFromPointers(col_data, n);
       columns_vec.push_back(col);
     }
   }
@@ -114,6 +142,20 @@ namespace BlitzL1 {
     value_t result = 0.0;
     for (size_t ind = 0; ind < vec.size(); ++ind)
       result += vec[ind] * vec[ind];
+    return result;
+  }
+
+  value_t l2_norm_sq(const value_t *values, index_t length) {
+    value_t result =  0.0;
+    for (index_t ind = 0; ind < length; ++ind)
+      result += values[ind] * values[ind];
+    return result;
+  }
+
+  value_t sum_array(const value_t *values, index_t length) {
+    value_t result =  0.0;
+    for (index_t ind = 0; ind < length; ++ind)
+      result += values[ind];
     return result;
   }
 

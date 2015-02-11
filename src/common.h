@@ -18,8 +18,8 @@ namespace BlitzL1 {
     public:
       index_t get_length() const { return length; }
       index_t get_nnz() const { return nnz; } 
-      virtual value_t inner_product(std::vector<value_t> vec) const = 0;
-      virtual value_t h_norm_sq(std::vector<value_t> h_values) const = 0;
+      virtual value_t inner_product(const std::vector<value_t> &vec) const = 0;
+      virtual value_t h_norm_sq(const std::vector<value_t> &h_values) const = 0;
       virtual void add_multiple(std::vector<value_t> &target, 
                                 value_t scaler) const = 0;
       virtual value_t mean() const = 0;
@@ -28,22 +28,35 @@ namespace BlitzL1 {
       value_t l2_norm_centered() const;
   };
 
-  class ColumnFromPointers : public Column {
+  class SparseColumnFromPointers : public Column {
     index_t *indices;
     value_t *values;
 
     public:
-      ColumnFromPointers(index_t *indices, 
+      SparseColumnFromPointers(index_t *indices, 
                          value_t *values,
                          index_t nnz,
                          index_t length);
-      value_t inner_product(std::vector<value_t> vec) const;
+      value_t inner_product(const std::vector<value_t> &vec) const;
       void add_multiple(std::vector<value_t> &target, 
                         value_t scaler) const;
-      value_t h_norm_sq(std::vector<value_t> h_values) const;
+      value_t h_norm_sq(const std::vector<value_t> &h_values) const;
       value_t mean() const;
       value_t l2_norm_sq() const;
   };
+
+  class DenseColumnFromPointers : public Column {
+    value_t *values;
+
+    public:
+      DenseColumnFromPointers(value_t *values, index_t length);
+      value_t inner_product(const std::vector<value_t> &vec) const;
+      void add_multiple(std::vector<value_t> &target, value_t scaler) const;
+      value_t h_norm_sq(const std::vector<value_t> &h_values) const;
+      value_t mean() const;
+      value_t l2_norm_sq() const;
+  };
+
 
   class Dataset {
     protected:
@@ -81,6 +94,8 @@ namespace BlitzL1 {
   };
 
   value_t l2_norm_sq(const std::vector<value_t> &vec);
+  value_t l2_norm_sq(const value_t *values, index_t length);
+  value_t sum_array(const value_t *values, index_t length);
   value_t l1_norm(value_t *x, index_t d);
   value_t inner_product(const std::vector<value_t> &vec1, 
                         const std::vector<value_t> &vec2);

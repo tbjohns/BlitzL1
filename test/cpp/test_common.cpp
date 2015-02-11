@@ -10,38 +10,70 @@ using std::endl;
 
 using namespace BlitzL1;
 
-void test_ColumnFromPointers() {
+void test_SparseColumnFromPointers() {
   value_t values[3] = {2.0, 3.0, 5.0};
   index_t indices[3] = {0, 1, 9};
   index_t nnz = 3;
   index_t length = 10;
-  Column *c = new ColumnFromPointers(indices, values, nnz, length);
+  Column *c = new SparseColumnFromPointers(indices, values, nnz, length);
 
   vector<value_t> vec;
   for (index_t i = 1; i <= length; ++i)
     vec.push_back((value_t) i);
 
   if (c->mean() != 1.0)
-    cerr << "Test ColumnFromPointers mean failed" << endl;
+    cerr << "Test SparseColumnFromPointers mean failed" << endl;
 
   if (c->l2_norm_sq() != 38.0)
-    cerr << "Test ColumnFromPointers l2_norm_sq failed" << endl;
+    cerr << "Test SparseColumnFromPointers l2_norm_sq failed" << endl;
 
   if (c->l2_norm() != sqrt(38.0))
-    cerr << "Test ColumnFromPointers l2_norm failed" << endl;
+    cerr << "Test SparseColumnFromPointers l2_norm failed" << endl;
 
   if (c->l2_norm_centered() != sqrt(28.0)) 
-    cerr << "Test ColumnFromPointers l2_norm_centered failed" << endl;
+    cerr << "Test SparseColumnFromPointers l2_norm_centered failed" << endl;
 
   if (c->inner_product(vec) != 58.0)
-    cerr << "Test ColumnFromPointers inner_product failed" << endl;
+    cerr << "Test SparseColumnFromPointers inner_product failed" << endl;
 
   if (c->h_norm_sq(vec) != 272.0)
-    cerr << "Test ColumnFromPointers h_norm_sq failed" << endl;
+    cerr << "Test SparseColumnFromPointers h_norm_sq failed" << endl;
 
   c->add_multiple(vec, -2.0);
   if (vec[9] != 0.0 || vec[0] != -3.0)
-    cerr << "Test ColumnFromPointers add_multiple failed" << endl;
+    cerr << "Test SparseColumnFromPointers add_multiple failed" << endl;
+}
+
+void test_DenseColumnFromPointers() {
+  value_t values[10] = {2.0, 3.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 5.0};
+  index_t length = 10;
+  Column *c = new DenseColumnFromPointers(values, length);
+
+  vector<value_t> vec;
+  for (index_t i = 1; i <= length; ++i)
+    vec.push_back((value_t) i);
+
+  if (c->mean() != 1.0)
+    cerr << "Test DenseColumnFromPointers mean failed" << endl;
+
+  if (c->l2_norm_sq() != 38.0)
+    cerr << "Test DenseColumnFromPointers l2_norm_sq failed" << endl;
+
+  if (c->l2_norm() != sqrt(38.0))
+    cerr << "Test DenseColumnFromPointers l2_norm failed" << endl;
+
+  if (c->l2_norm_centered() != sqrt(28.0)) 
+    cerr << "Test DenseColumnFromPointers l2_norm_centered failed" << endl;
+
+  if (c->inner_product(vec) != 58.0)
+    cerr << "Test DenseColumnFromPointers inner_product failed" << endl;
+
+  if (c->h_norm_sq(vec) != 272.0)
+    cerr << "Test DenseColumnFromPointers h_norm_sq failed" << endl;
+
+  c->add_multiple(vec, -2.0);
+  if (vec[9] != 0.0 || vec[0] != -3.0)
+    cerr << "Test DenseColumnFromPointers add_multiple failed" << endl;
 }
 
 void test_DatasetFromCSCPointers() {
@@ -134,7 +166,8 @@ void test_Math() {
 }
 
 int main() {
-  test_ColumnFromPointers();
+  test_SparseColumnFromPointers();
+  test_DenseColumnFromPointers();
   test_DatasetFromCSCPointers();
   test_DatasetFromFContiguousPointer();
   test_Math();

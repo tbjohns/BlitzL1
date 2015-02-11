@@ -20,6 +20,18 @@ extern "C" {
                   indices, indptr, data, labels, n, d, nnz);
   }
 
+  Dataset* BlitzL1_new_dense_dataset(value_t *data,
+                                     value_t *labels,
+                                     index_t n,
+                                     index_t d) {
+    cout << "data[0] is " << *data << endl;
+    return new DatasetFromFContiguousPointer(data, labels, n, d);
+  }
+
+  void BlitzL1_free_dataset(Dataset* data) {
+    delete data;
+  }
+
   value_t BlitzL1_get_column_norm(Dataset* data, index_t j) {
     return data->get_column(j)->l2_norm();
   }

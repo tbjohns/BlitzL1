@@ -51,18 +51,17 @@ namespace BlitzL1 {
       index_t n;   // # training examples
       index_t d;   // # features
       index_t nnz; // # nonzero entries
+      value_t* labels;
 
     public:
       const Column* get_column(index_t j) const { return columns_vec[j]; }
-      virtual value_t get_label(index_t i) const = 0;
+      value_t get_label(index_t i) const;
       index_t get_nnz() const { return nnz; }
       index_t get_n() const { return n; }
       index_t get_d() const { return d; }
   };
 
   class DatasetFromCSCPointers : public Dataset {
-    value_t *labels;  
-
     public:
       DatasetFromCSCPointers(index_t *indices,
                           nnz_t *indptr,
@@ -71,7 +70,14 @@ namespace BlitzL1 {
                           index_t n,
                           index_t d,
                           nnz_t nnz);
-      value_t get_label(index_t i) const;
+  };
+
+  class DatasetFromFContiguousPointer : public Dataset {
+    public:
+      DatasetFromFContiguousPointer(value_t *data, 
+                                    value_t *labels, 
+                                    index_t n, 
+                                    index_t d);
   };
 
   value_t l2_norm_sq(const std::vector<value_t> &vec);

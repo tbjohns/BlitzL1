@@ -72,6 +72,32 @@ void test_DatasetFromCSCPointers() {
     cerr << "Test DatasetFromCSCPointers last label failed" << endl;
 }
 
+void test_DatasetFromFContiguousPointer() {
+  value_t values[15] = {0, -2, 0, 1, 0, 0, 0, 3, 1, 0, 1, 2, 1, 0, 0};
+  value_t labels[3] = {-1, 0.5, 1.5};
+  Dataset *data = new DatasetFromFContiguousPointer(values, labels, 3, 5);
+
+  vector<value_t> vec;
+  vec.push_back(1);
+  vec.push_back(2);
+  vec.push_back(3);
+
+  if (data->get_column(0)->l2_norm_sq() != 4.0)
+    cerr << "Test DatasetFromFContiguousPointer column 0 failed" << endl;
+  if (data->get_column(1)->inner_product(vec) != 1.0)
+    cerr << "Test DatasetFromFContiguousPointer column 1 failed" << endl;
+  if (data->get_column(2)->inner_product(vec) != 9.0)
+    cerr << "Test DatasetFromFContiguousPointer column 2 failed" << endl;
+  if (data->get_column(3)->mean() != 1.0)
+    cerr << "Test DatasetFromFContiguousPointer column 3 failed" << endl;
+  if (data->get_column(4)->inner_product(vec) != 1.0)
+    cerr << "Test DatasetFromFContiguousPointer column 4 failed" << endl;
+  if (data->get_label(0) != -1.0)
+    cerr << "Test DatasetFromFContiguousPointer label 0 failed" << endl;
+  if (data->get_label(2) != 1.5)
+    cerr << "Test DatasetFromFContiguousPointer last label failed" << endl;
+}
+
 void test_Math() {
   vector<value_t> vec;
   vec.assign(10, 0.0);
@@ -110,6 +136,7 @@ void test_Math() {
 int main() {
   test_ColumnFromPointers();
   test_DatasetFromCSCPointers();
+  test_DatasetFromFContiguousPointer();
   test_Math();
   return 0;
 }

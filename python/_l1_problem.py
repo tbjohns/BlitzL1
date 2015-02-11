@@ -20,6 +20,10 @@ _bool = ctypes.c_bool
 
 _lib.BlitzL1_new_sparse_dataset.restype = _pointer
 _lib.BlitzL1_new_sparse_dataset.argtypes = [_index_t_p, _size_t_p, _value_t_p, _value_t_p, _index_t, _index_t, _size_t]
+_lib.BlitzL1_new_dense_dataset.restype = _pointer
+_lib.BlitzL1_new_dense_dataset.argtypes = [_value_t_p, _value_t_p, _index_t, _index_t]
+_lib.BlitzL1_free_dataset.argtypes = [_pointer]
+_lib.BlitzL1_free_dataset.restype = None
 _lib.BlitzL1_get_column_norm.restype = _value_t
 _lib.BlitzL1_get_column_norm.argtype = [_pointer, _index_t]
 _lib.BlitzL1_get_label_i.restype = _value_t
@@ -71,12 +75,10 @@ def set_verbose(value):
 def get_verbose():
   return _lib.BlitzL1_get_verbose(_solver)
 
-def data_as(obj, ctypes_type, force_return_obj=False):
-  return_obj = obj
+def data_as(obj, ctypes_type):
   if obj.dtype != ctypes_type:
     obj = obj.astype(ctypes_type)
-    return_obj = obj
-  return (return_obj, obj.ctypes.data_as(ctypes_type))
+  return (obj, obj.ctypes.data_as(ctypes_type))
 
 
 
@@ -85,23 +87,31 @@ class _L1Problem(object):
     self._load_dataset(A, b)
 
   def _load_dataset(self, A, b):
+    #if not sparse.issparse(A):
+      #A = sparse.csc_matrix(A)
     self.shape = A.shape
+    n = _index_t(A.shape[0])
+    d = _index_t(A.shape[1])
+    (self.b, labels_arg) = data_as(b, _value_t_p)
     if sparse.issparse(A):
-      if sparse.isspmatrix_csc(A):
-        format_changed = False
-      else:
+      if not sparse.isspmatrix_csc(A):
         A = A.tocsc()
-        format_changed = True
-
-      (self.indices, indices_arg) = data_as(A.indices, _index_t_p, format_changed)
-      (self.indptr, indptr_arg) = data_as(A.indptr, _size_t_p, format_changed)
-      (self.data, data_arg) = data_as(A.data, _value_t_p, format_changed)
-      (self.b, labels_arg) = data_as(b, _value_t_p)
-      n = _index_t(A.shape[0])
-      d = _index_t(A.shape[1])
+      (self.indices, indices_arg) = data_as(A.indices, _index_t_p)
+      (self.indptr, indptr_arg) = data_as(A.indptr, _size_t_p)
+      (self.data, data_arg) = data_as(A.data, _value_t_p)
       nnz = _size_t(A.nnz)
       self.dataset = _lib.BlitzL1_new_sparse_dataset(
           indices_arg, indptr_arg, data_arg, labels_arg, n, d, nnz)
+    else:
+      #if not A.flags.f_contiguous:
+      #  A = np.asfortranarray(A)
+      #self.A = np.copy(A)
+      #(_, data_arg) = data_as(A, _value_t_p)
+      data_arg = A.ctypes.data_as(ctypes.POINTER(ctypes.c_double))
+      _lib.BlitzL1_new_dense_dataset(data_arg, data_arg, n, d)
+
+  #KJjdef __del__(self):
+    #KJj_lib.BlitzL1_free_dataset(self.dataset)
 
   def _get_A_column_norm(self, j):
     return _lib.BlitzL1_get_column_norm(self.dataset, _index_t(j))

@@ -14,12 +14,31 @@ import python as blitzl1
 def test_DataLoad():
 
   n = 10
-  d = 12
-  A = np.random.randn(n, d)
-  b = np.random.randn(n)
+  d = 200
+  A = np.arange(n*d, dtype=np.float).reshape(n, d)
+  b = np.arange(n, dtype=np.float)
 
   col_norm_0 = np.linalg.norm(A[:,0])
   col_norm_last = np.linalg.norm(A[:,d-1])
+
+  B = np.arange(n*d, dtype=np.float).reshape(n, d)
+  prob2 = blitzl1.LassoProblem(B, b)
+  #if prob._get_A_column_norm(0) != col_norm_0:
+  #  print "Dense data load failed (col_norm_0)"
+  #if prob._get_A_column_norm(d-1) != col_norm_last:
+  #  print "Dense data load failed (col_norm_last)"
+  #if prob._get_label_i(n-1) != b[n-1]:
+  #  print "Dense labels load failed"
+
+  #A_float16 = np.array(A, dtype=np.float16)
+  #b_float16 = np.array(b, dtype=np.float16)
+  #prob = blitzl1.LassoProblem(A_float16, b_float16)
+  #if prob._get_A_column_norm(0) != col_norm_0:
+  #  print "Dense float16 data load failed (col_norm_0)"
+  #if prob._get_A_column_norm(d-1) != col_norm_last:
+  #  print "Dense float16 data load failed (col_norm_last)"
+  #if prob._get_label_i(n-1) != b[n-1]:
+  #  print "Dense float16 labels load failed"
 
   A_csc = sparse.csc_matrix(A)
   prob = blitzl1.LassoProblem(A_csc, b)
@@ -33,8 +52,6 @@ def test_DataLoad():
   A_csr = sparse.csr_matrix(A)
   prob = blitzl1.LassoProblem(A_csr, b)
   if prob._get_A_column_norm(0) != col_norm_0:
-    print prob._get_A_column_norm(0)
-    print col_norm_0
     print "CSR data load failed (col_norm_0)"
   if prob._get_A_column_norm(d-1) != col_norm_last:
     print "CSR data load failed (col_norm_last)"
@@ -44,8 +61,8 @@ def test_DataLoad():
   A_float16 = sparse.csr_matrix(A, dtype=np.float16)
   prob = blitzl1.LassoProblem(A_float16, b)
   diff = abs(prob._get_A_column_norm(d-1) - col_norm_last)
-  if diff > 0.1:
-    print "float16 data load failed (col_norm_last)"
+  if diff > 1.0:
+    print "CSR float16 data load failed (col_norm_last)"
 
 def test_SolverOptions():
   blitzl1.set_tolerance(0.027)  
@@ -75,6 +92,7 @@ def test_SolverOptions():
 def main():
   test_DataLoad()
   test_SolverOptions()
+  return 0
 
 
 main()

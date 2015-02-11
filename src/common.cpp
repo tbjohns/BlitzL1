@@ -2,6 +2,10 @@
 
 using std::vector;
 
+#include <iostream>
+using std::cout;
+using std::endl;
+
 namespace BlitzL1 {
 
   value_t Column::l2_norm_centered() const {
@@ -60,6 +64,10 @@ namespace BlitzL1 {
     return result;
   }
 
+  value_t Dataset::get_label(index_t i) const {
+    return labels[i]; 
+  }
+
   DatasetFromCSCPointers::DatasetFromCSCPointers(index_t *indices,
                                            nnz_t *indptr,
                                            value_t *data,
@@ -83,9 +91,26 @@ namespace BlitzL1 {
     }
   }
 
-  value_t DatasetFromCSCPointers::get_label(index_t i) const {
-    return labels[i]; 
+  DatasetFromFContiguousPointer::DatasetFromFContiguousPointer(
+        value_t *data, value_t *labels, index_t n, index_t d) {
+    this->n = n;
+    this->d = d;
+    this->nnz = n * d;
+    this->labels = labels;
+    columns_vec.clear();
+    columns_vec.reserve(d);
+    index_t *indices = new index_t(n);
+    for (index_t i = 0; i < n; ++i)
+      indices[i] = i;
+    for (index_t j = 0; j < d; ++j) {
+      value_t *col_data = data; 
+      Column *col = new ColumnFromPointers(indices, col_data, n, n);
+      columns_vec.push_back(col);
+      data += n;
+    }
+    cout << "MADE IT" << endl;
   }
+
 
   value_t l2_norm_sq(const vector<value_t> &vec) {
     value_t result = 0.0;
@@ -127,4 +152,4 @@ namespace BlitzL1 {
       return 0.0;
   }
 
-} // namespace BlitzL1
+}

@@ -27,7 +27,7 @@ _lib.BlitzL1_get_label_i.argtype = [_pointer, _index_t]
 _lib.BlitzL1_new_solver.restype = _pointer
 _lib.BlitzL1_new_solver.argtype = None
 _lib.BlitzL1_solve_problem.restype = None
-_lib.BlitzL1_solve_problem.argtype = [_pointer, _pointer, _value_t, _char_p, _value_t_p, _value_t]
+_lib.BlitzL1_solve_problem.argtype = [_pointer, _pointer, _value_t, _char_p, _value_t_p, _value_t, _value_t, _value_t, _char_p]
 _lib.BlitzL1_set_tolerance.restype = None
 _lib.BlitzL1_set_tolerance.argtype = [_pointer, _value_t]
 _lib.BlitzL1_get_tolerance.restype = _value_t
@@ -109,19 +109,24 @@ class _L1Problem(object):
   def _get_label_i(self, i):
     return _lib.BlitzL1_get_label_i(self.dataset, _index_t(i))
 
-  def solve(self, lam):
+  def solve(self, lam, log_dir=""):
     lambda_arg = _value_t(lam)
     (n, d) = self.shape
     (x, x_arg) = data_as(np.zeros(d), _value_t_p)
     intercept_arg = _value_t()
+    obj_arg = _value_t()
+    duality_gap_arg = _value_t()
     loss_arg = _char_p(self.LOSS_TYPE)
-    _lib.BlitzL1_solve_problem(_solver, self.dataset, lambda_arg, loss_arg, x_arg, ctypes.byref(intercept_arg))
-    return self.SOLUTION_TYPE(x, intercept_arg.value)
+    log_dir_arg = _char_p(log_dir)
+    _lib.BlitzL1_solve_problem(_solver, self.dataset, lambda_arg, loss_arg, x_arg, ctypes.byref(intercept_arg), ctypes.byref(obj_arg), ctypes.byref(duality_gap_arg), log_dir_arg)
+    return self.SOLUTION_TYPE(x, intercept_arg.value, obj_arg.value, duality_gap_arg.value)
     
 class _Solution(object):
-  def __init__(self, x, intercept):
+  def __init__(self, x, intercept, obj, duality_gap):
     self.x = x
     self.intercept = intercept
+    self.obj = obj
+    self.duality_gap = duality_gap
 
   def _compute_Ax(self, A):
     if sparse.issparse(A):
@@ -136,7 +141,7 @@ class LassoSolution(_Solution):
 
   def evaluate_loss(self, A, b):
     predictions = self.predict(A)
-    return np.linalg.norm(b - predictions) ** 2
+    return 0.5 * np.linalg.norm(b - predictions) ** 2
 
 class LogRegSolution(_Solution):
   def predict(self, A):

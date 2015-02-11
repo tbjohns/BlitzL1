@@ -41,6 +41,8 @@ namespace BlitzL1 {
                  char* loss_type,
                  value_t* x,
                  value_t &intercept,
+                 value_t &primal_obj,
+                 value_t &duality_gap,
                  char* log_directory);
   };
 

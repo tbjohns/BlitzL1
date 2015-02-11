@@ -24,7 +24,6 @@ extern "C" {
                                      value_t *labels,
                                      index_t n,
                                      index_t d) {
-    cout << "data[0] is " << *data << endl;
     return new DatasetFromFContiguousPointer(data, labels, n, d);
   }
 

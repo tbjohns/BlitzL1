@@ -103,15 +103,11 @@ class _L1Problem(object):
       self.dataset = _lib.BlitzL1_new_sparse_dataset(
           indices_arg, indptr_arg, data_arg, labels_arg, n, d, nnz)
     else:
-      #if not A.flags.f_contiguous:
-      #  A = np.asfortranarray(A)
-      #self.A = np.copy(A)
-      #(_, data_arg) = data_as(A, _value_t_p)
-      data_arg = A.ctypes.data_as(ctypes.POINTER(ctypes.c_double))
-      _lib.BlitzL1_new_dense_dataset(data_arg, data_arg, n, d)
-
-  #KJjdef __del__(self):
-    #KJj_lib.BlitzL1_free_dataset(self.dataset)
+      if not A.flags.f_contiguous:
+        A = np.asfortranarray(A)
+      (self.data, data_arg) = data_as(A, _value_t_p)
+      self.dataset = _lib.BlitzL1_new_dense_dataset(
+                              data_arg, labels_arg, n, d)
 
   def _get_A_column_norm(self, j):
     return _lib.BlitzL1_get_column_norm(self.dataset, _index_t(j))

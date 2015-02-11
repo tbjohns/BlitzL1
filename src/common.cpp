@@ -99,16 +99,14 @@ namespace BlitzL1 {
     this->labels = labels;
     columns_vec.clear();
     columns_vec.reserve(d);
-    index_t *indices = new index_t(n);
+    index_t *indices = new index_t[n];
     for (index_t i = 0; i < n; ++i)
       indices[i] = i;
     for (index_t j = 0; j < d; ++j) {
-      value_t *col_data = data; 
+      value_t *col_data = data + j * n; 
       Column *col = new ColumnFromPointers(indices, col_data, n, n);
       columns_vec.push_back(col);
-      data += n;
     }
-    cout << "MADE IT" << endl;
   }
 
 

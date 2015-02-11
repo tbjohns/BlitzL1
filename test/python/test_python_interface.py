@@ -22,23 +22,23 @@ def test_DataLoad():
   col_norm_last = np.linalg.norm(A[:,d-1])
 
   B = np.arange(n*d, dtype=np.float).reshape(n, d)
-  prob2 = blitzl1.LassoProblem(B, b)
-  #if prob._get_A_column_norm(0) != col_norm_0:
-  #  print "Dense data load failed (col_norm_0)"
-  #if prob._get_A_column_norm(d-1) != col_norm_last:
-  #  print "Dense data load failed (col_norm_last)"
-  #if prob._get_label_i(n-1) != b[n-1]:
-  #  print "Dense labels load failed"
+  prob = blitzl1.LassoProblem(B, b)
+  if prob._get_A_column_norm(0) != col_norm_0:
+    print "Dense data load failed (col_norm_0)"
+  if prob._get_A_column_norm(d-1) != col_norm_last:
+    print "Dense data load failed (col_norm_last)"
+  if prob._get_label_i(n-1) != b[n-1]:
+    print "Dense labels load failed"
 
-  #A_float16 = np.array(A, dtype=np.float16)
-  #b_float16 = np.array(b, dtype=np.float16)
-  #prob = blitzl1.LassoProblem(A_float16, b_float16)
-  #if prob._get_A_column_norm(0) != col_norm_0:
-  #  print "Dense float16 data load failed (col_norm_0)"
-  #if prob._get_A_column_norm(d-1) != col_norm_last:
-  #  print "Dense float16 data load failed (col_norm_last)"
-  #if prob._get_label_i(n-1) != b[n-1]:
-  #  print "Dense float16 labels load failed"
+  A_float16 = np.array(A, dtype=np.float16)
+  b_float16 = np.array(b, dtype=np.float16)
+  prob = blitzl1.LassoProblem(A_float16, b_float16)
+  if prob._get_A_column_norm(0) != col_norm_0:
+    print "Dense float16 data load failed (col_norm_0)"
+  if prob._get_A_column_norm(d-1) != col_norm_last:
+    print "Dense float16 data load failed (col_norm_last)"
+  if prob._get_label_i(n-1) != b[n-1]:
+    print "Dense float16 labels load failed"
 
   A_csc = sparse.csc_matrix(A)
   prob = blitzl1.LassoProblem(A_csc, b)

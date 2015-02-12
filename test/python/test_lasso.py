@@ -64,6 +64,26 @@ def test_SmallLasso():
     print "test SmallLasso save_obj failed"
   os.remove(save_path)
 
+
+  blitzl1.set_tolerance(0.1)
+  log_path = "/tmp/blitzl1_log_test/"
+  sol = prob.solve(5.0, log_dir=log_path)
+  log_point = 0
+  while True:
+    time_file = "%s/time.%d" % (log_path, log_point)
+    obj_file = "%s/obj.%d" % (log_path, log_point)
+    try:
+      time = float(open(time_file).read())
+      obj = float(open(obj_file).read())
+    except:
+      break
+    log_point += 1
+  if obj != sol.obj:
+    print "test SmallLasso log_obj failed"
+  if time <= 0.0:
+    print "test SmallLasso log_time failed"
+  os.system("rm -r %s" % log_path)
+
 def main():
   test_SimpleLasso()
   test_SmallLasso()

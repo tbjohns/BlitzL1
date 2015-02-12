@@ -123,6 +123,11 @@ class _L1Problem(object):
     return _lib.BlitzL1_compute_lambda_max(_solver, self._dataset, self._loss_arg)
 
   def solve(self, lam, log_dir=""):
+    if log_dir:
+      try:
+        os.mkdir(log_dir)
+      except:
+        pass
     lambda_arg = _value_t(lam)
     (n, d) = self._shape
     (x, x_arg) = data_as(np.zeros(d), _value_t_p)

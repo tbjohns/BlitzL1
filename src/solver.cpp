@@ -1,5 +1,7 @@
 #include "solver.h"
 #include "loss.h"
+#include "logger.h"
+#include "timer.h"
 
 #include <cstring>
 #include <iostream>
@@ -71,6 +73,8 @@ void Solver::solve(Dataset *data,
                    value_t &duality_gap,
                    char* log_directory) {
 
+  Timer timer;
+  Logger logger(log_directory);
 
   index_t d = data->get_d();
 
@@ -133,9 +137,15 @@ void Solver::solve(Dataset *data,
 
     primal_obj = primal_loss + lambda * l1_norm(x, d); 
     duality_gap = primal_obj - dual_obj;
+
+    timer.pause_timing();
     if (verbose)
-      cout << "Objective: " << primal_obj 
+      cout << "Time: " << timer.elapsed_time() 
+           << " Objective: " << primal_obj 
            << " Duality gap: " << duality_gap << endl;
+
+    logger.log_point(timer.elapsed_time(), primal_obj);
+    timer.continue_timing();
 
     if (duality_gap / std::abs(dual_obj) < tolerance)
       break;

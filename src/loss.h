@@ -16,6 +16,7 @@ namespace BlitzL1 {
     
     public:
       const value_t L;
+      Loss() : L(1.0) {} 
 
       virtual value_t dual_obj(
         const std::vector<value_t> &theta,
@@ -37,8 +38,12 @@ namespace BlitzL1 {
         const std::vector<value_t> &theta,
         const std::vector<value_t> &aux_dual,
         Dataset *data) = 0;
-
-      Loss() : L(1.0) {} 
+    
+      virtual void apply_intercept_update(
+        value_t delta,
+        std::vector<value_t> &theta,
+        std::vector<value_t> &aux_dual,
+        Dataset *data) = 0;
   };
 
   class LogisticLoss : public Loss {
@@ -67,6 +72,12 @@ namespace BlitzL1 {
         const std::vector<value_t> &theta,
         const std::vector<value_t> &aux_dual,
         Dataset *data);
+        
+      void apply_intercept_update(
+        value_t delta,
+        std::vector<value_t> &theta,
+        std::vector<value_t> &aux_dual,
+        Dataset *data);
   };
 
   class SquaredLoss : public Loss {
@@ -94,6 +105,12 @@ namespace BlitzL1 {
         std::vector<value_t> &H,
         const std::vector<value_t> &theta,
         const std::vector<value_t> &aux_dual,
+        Dataset *data);
+
+      void apply_intercept_update(
+        value_t delta,
+        std::vector<value_t> &theta,
+        std::vector<value_t> &aux_dual,
         Dataset *data);
   };
 

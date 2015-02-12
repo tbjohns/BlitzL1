@@ -152,6 +152,13 @@ namespace BlitzL1 {
     return result;
   }
 
+  value_t l1_norm(value_t *vec, index_t len) {
+    value_t result = 0.0;
+    for (index_t ind = 0; ind < len; ++ind)
+      result += std::abs(vec[ind]);
+    return result;
+  }
+
   value_t sum_array(const value_t *values, index_t length) {
     value_t result =  0.0;
     for (index_t ind = 0; ind < length; ++ind)
@@ -159,10 +166,10 @@ namespace BlitzL1 {
     return result;
   }
 
-  value_t l1_norm(value_t *vec, index_t len) {
+  value_t sum_vector(const vector<value_t> &vec) {
     value_t result = 0.0;
-    for (index_t ind = 0; ind < len; ++ind)
-      result += std::abs(vec[ind]);
+    for (size_t ind = 0; ind < vec.size(); ++ind)
+      result += vec[ind];
     return result;
   }
 

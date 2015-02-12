@@ -64,3 +64,16 @@ void LogisticLoss::compute_H(vector<value_t> &H,
   }
 }
 
+void LogisticLoss::apply_intercept_update(
+                value_t delta,
+                vector<value_t> &theta, 
+                vector<value_t> &aux_dual, 
+                Dataset* data) {
+  index_t n = data->get_n(); 
+  for (index_t i = 0; i < n; ++i) {
+    value_t minus_label = -data->get_label(i);
+    aux_dual[i] *= exp(minus_label * delta);
+    theta[i] = minus_label * aux_dual[i] / (1 + aux_dual[i]);
+  }
+}
+

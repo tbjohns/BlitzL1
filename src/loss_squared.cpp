@@ -41,3 +41,14 @@ void SquaredLoss::compute_H(vector<value_t> &H,
   H.assign(n, 1.0);
 }
 
+void SquaredLoss::apply_intercept_update(
+                value_t delta,
+                vector<value_t> &theta, 
+                vector<value_t> &aux_dual, 
+                Dataset* data) {
+  index_t n = data->get_n(); 
+  for (index_t i = 0; i < n; ++i) 
+    theta[i] += delta;
+}
+
+

@@ -28,7 +28,20 @@ def test_SimpleLasso():
   prob = blitzl1.LassoProblem(A, b)
   sol = prob.solve(1)
   if not approx_equal(sol.x[0], 4.0) or not approx_equal(sol.x[3], -2.75):
-    print "test SimpleLasso failed"
+    print "test SimpleLasso basic failed"
+
+  blitzl1.set_use_intercept(True)
+  sol = prob.solve(1)
+  if not approx_equal(sol.intercept, -0.25):
+    print "test SimpleLasso intercept failed"
+
+  if not approx_equal(sol.obj, 9.75):
+    print "test SimpleLasso obj failed"
+
+  python_obj = sol.evaluate_loss(A, b) + np.linalg.norm(sol.x, ord=1)
+  if not approx_equal(sol.obj, python_obj):
+    print "test SimpleLasso python_obj failed"
+
 
 def test_SmallLasso():
   blitzl1.set_use_intercept(False)

@@ -13,6 +13,24 @@ using std::endl;
 const int MAX_BACKTRACK = 20;
 const value_t L_INCREASE_RATIO = 1.25;
 
+void Solver::update_intercept(value_t &intercept, 
+                              Loss *loss_function,
+                              Dataset *data) {
+  // 1-d newton method:
+  vector<value_t> H;
+  for (int itr = 0; itr < 10; ++itr) {
+    value_t grad = sum_vector(theta);
+    loss_function->compute_H(H, theta, aux_dual, data);
+    value_t hess = sum_vector(H);
+    value_t delta = -grad / hess;
+    intercept += delta;
+    loss_function->apply_intercept_update(delta, theta, aux_dual, data);
+
+    if (std::abs(grad) <= 1e-14)
+      break;
+  }
+}
+
 void Solver::solve(Dataset *data,
                    value_t lambda,
                    char* loss_type,
@@ -22,7 +40,7 @@ void Solver::solve(Dataset *data,
                    value_t &duality_gap,
                    char* log_directory) {
 
-  Loss *loss_function;
+  Loss* loss_function;
   if (strcmp(loss_type, "logistic") == 0)
     loss_function = new LogisticLoss();
   else if (strcmp(loss_type, "squared") == 0)
@@ -39,6 +57,9 @@ void Solver::solve(Dataset *data,
   value_t L = 5 * loss_function->L;
 
   while (true) {
+    if (use_intercept)
+      update_intercept(intercept, loss_function, data);
+
     value_t primal_loss_last = primal_loss;
     value_t primal_obj_last = primal_obj;
     vector<value_t> loss_gradients;
@@ -80,7 +101,6 @@ void Solver::solve(Dataset *data,
       x[j] = new_x[j];
 
     primal_obj = primal_loss + lambda * l1_norm(x, d); 
-    duality_gap = 0.0;
     if (verbose)
       cout << "Objective: " << primal_obj << endl;
 
@@ -89,5 +109,6 @@ void Solver::solve(Dataset *data,
     }
 
   }
+
 }
 

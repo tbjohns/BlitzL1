@@ -1,6 +1,7 @@
 #pragma once 
 
 #include "common.h"
+#include "loss.h"
 #include <vector>
 
 namespace BlitzL1 {
@@ -21,6 +22,10 @@ namespace BlitzL1 {
       bool use_intercept;
       value_t min_time;
       value_t max_time;
+
+      void update_intercept(value_t &intercept, 
+                            Loss *loss_function,
+                            Dataset *data);
 
     public:
       Solver() {}

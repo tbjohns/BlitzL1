@@ -4,6 +4,7 @@
 #include "timer.h"
 
 #include <cstring>
+#include <stdio.h>
 #include <iostream>
 
 using namespace BlitzL1;
@@ -33,7 +34,7 @@ void Solver::update_intercept(value_t &intercept,
   }
 }
 
-Loss* get_loss_function(char* loss_type) {
+Loss* get_loss_function(const char* loss_type) {
   if (strcmp(loss_type, "logistic") == 0)
     return new LogisticLoss();
   else if (strcmp(loss_type, "squared") == 0)
@@ -42,7 +43,7 @@ Loss* get_loss_function(char* loss_type) {
     throw loss_type;
 }
 
-value_t Solver::compute_lambda_max(Dataset *data, char* loss_type) {
+value_t Solver::compute_lambda_max(Dataset *data, const char* loss_type) {
 
   Loss* loss_function = get_loss_function(loss_type);    
   index_t d = data->get_d();
@@ -66,12 +67,13 @@ value_t Solver::compute_lambda_max(Dataset *data, char* loss_type) {
 
 void Solver::solve(Dataset *data,
                    value_t lambda,
-                   char* loss_type,
+                   const char* loss_type,
                    value_t* x,
                    value_t &intercept,
                    value_t &primal_obj,
                    value_t &duality_gap,
-                   char* log_directory) {
+                   const char* log_directory,
+                   char* solution_status) {
 
   Timer timer;
   Logger logger(log_directory);
@@ -138,19 +140,29 @@ void Solver::solve(Dataset *data,
     primal_obj = primal_loss + lambda * l1_norm(x, d); 
     duality_gap = primal_obj - dual_obj;
 
+    double elapsed_time = timer.elapsed_time();
     timer.pause_timing();
     if (verbose)
-      cout << "Time: " << timer.elapsed_time() 
+      cout << "Time: " << elapsed_time
            << " Objective: " << primal_obj 
            << " Duality gap: " << duality_gap << endl;
 
-    logger.log_point(timer.elapsed_time(), primal_obj);
+    logger.log_point(elapsed_time, primal_obj);
     timer.continue_timing();
 
-    if (duality_gap / std::abs(dual_obj) < tolerance)
+    if ((duality_gap / std::abs(dual_obj) < tolerance) &&
+        (elapsed_time > min_time)) {
+      sprintf(solution_status, "reached stopping tolerance");
       break;
+    }
 
     if (primal_obj >= primal_obj_last) {
+      sprintf(solution_status, "reached machine precision");
+      break;
+    }
+
+    if (elapsed_time > max_time) {
+      sprintf(solution_status, "reached time limit");
       break;
     }
 

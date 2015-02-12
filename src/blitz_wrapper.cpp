@@ -95,8 +95,9 @@ extern "C" {
                            value_t &intercept,
                            value_t &primal_obj,
                            value_t &duality_gap,
-                           char *log_dir) {
-    solver->solve(data, lambda, loss_type, x, intercept, primal_obj, duality_gap, log_dir);
+                           char *log_dir,
+                           char *solution_status) {
+    solver->solve(data, lambda, loss_type, x, intercept, primal_obj, duality_gap, log_dir, solution_status);
   }
 
                            

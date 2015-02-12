@@ -32,7 +32,7 @@ _lib.BlitzL1_get_label_i.argtype = [_pointer, _index_t]
 _lib.BlitzL1_new_solver.restype = _pointer
 _lib.BlitzL1_new_solver.argtype = None
 _lib.BlitzL1_solve_problem.restype = None
-_lib.BlitzL1_solve_problem.argtype = [_pointer, _pointer, _value_t, _char_p, _value_t_p, _value_t, _value_t, _value_t, _char_p]
+_lib.BlitzL1_solve_problem.argtype = [_pointer, _pointer, _value_t, _char_p, _value_t_p, _value_t, _value_t, _value_t, _char_p, _char_p]
 _lib.BlitzL1_set_tolerance.restype = None
 _lib.BlitzL1_set_tolerance.argtype = [_pointer, _value_t]
 _lib.BlitzL1_get_tolerance.restype = _value_t
@@ -135,8 +135,11 @@ class _L1Problem(object):
     obj_arg = _value_t()
     duality_gap_arg = _value_t()
     log_dir_arg = _char_p(log_dir)
-    _lib.BlitzL1_solve_problem(_solver, self._dataset, lambda_arg, self._loss_arg, x_arg, ctypes.byref(intercept_arg), ctypes.byref(obj_arg), ctypes.byref(duality_gap_arg), log_dir_arg)
-    return self._SOLUTION_TYPE(x, intercept_arg.value, obj_arg.value, duality_gap_arg.value)
+    solution_status = " " * 64
+    solution_status_arg = _char_p(solution_status)
+    _lib.BlitzL1_solve_problem(_solver, self._dataset, lambda_arg, self._loss_arg, x_arg, ctypes.byref(intercept_arg), ctypes.byref(obj_arg), ctypes.byref(duality_gap_arg), log_dir_arg, solution_status_arg)
+    solution_status = solution_status.strip().strip('\x00')
+    return self._SOLUTION_TYPE(x, intercept_arg.value, obj_arg.value, duality_gap_arg.value, solution_status)
 
 def load_solution(filepath):
   in_file = open(filepath)
@@ -145,11 +148,12 @@ def load_solution(filepath):
   return sol
 
 class _Solution(object):
-  def __init__(self, x, intercept, obj, duality_gap):
+  def __init__(self, x, intercept, obj, duality_gap, status):
     self.x = x
     self.intercept = intercept
     self.obj = obj
     self.duality_gap = duality_gap
+    self.status = status
 
   def _compute_Ax(self, A):
     if sparse.issparse(A):

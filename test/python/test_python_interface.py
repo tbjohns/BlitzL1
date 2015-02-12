@@ -89,9 +89,36 @@ def test_SolverOptions():
   if blitzl1.get_verbose() != False:
     print "test SolverOptions verbose (False) failed"
 
+def test_StatusMessage():
+  blitzl1.set_tolerance(0.0)
+  blitzl1.set_verbose(False)
+
+  n = 10
+  d = 10
+  A = np.arange(n*d, dtype=np.float).reshape(n, d)
+  b = np.arange(n, dtype=np.float)
+
+  prob = blitzl1.LassoProblem(A, b)
+  sol = prob.solve(2000.)
+  if sol.status != "reached machine precision":
+    print "test StatusMessage machine precision failed"
+
+  blitzl1.set_tolerance(0.1)
+  sol = prob.solve(2000.)
+  if sol.status != "reached stopping tolerance":
+    print "test StatusMessage stopping tolerance failed"
+
+  blitzl1.set_tolerance(0.0)
+  blitzl1.set_max_time(0.0)
+  sol = prob.solve(2000.)
+  if sol.status != "reached time limit":
+    print "test StatusMessage time limit failed"
+
+
 def main():
   test_DataLoad()
   test_SolverOptions()
+  test_StatusMessage()
   return 0
 
 

@@ -2,6 +2,7 @@ import os
 import numpy as np 
 import ctypes
 from scipy import sparse
+import pickle
 
 _dir = os.path.abspath(os.path.dirname(__file__))
 _lib = np.ctypeslib.load_library("../lib/libblitzl1.so", _dir)
@@ -48,6 +49,8 @@ _lib.BlitzL1_set_verbose.restype = None
 _lib.BlitzL1_set_verbose.argtype = [_pointer, _bool]
 _lib.BlitzL1_get_verbose.restype = _bool
 _lib.BlitzL1_get_verbose.argtype = None
+_lib.BlitzL1_compute_lambda_max.restype = _value_t
+_lib.BlitzL1_compute_lambda_max.argtype = [_pointer, _pointer, _char_p]
 
 _solver = _lib.BlitzL1_new_solver()
 
@@ -84,49 +87,58 @@ def data_as(obj, ctypes_type):
 
 class _L1Problem(object):
   def __init__(self, A, b):
+    self._loss_arg = _char_p(self._LOSS_TYPE)
     self._load_dataset(A, b)
 
   def _load_dataset(self, A, b):
     #if not sparse.issparse(A):
       #A = sparse.csc_matrix(A)
-    self.shape = A.shape
+    self._shape = A.shape
     n = _index_t(A.shape[0])
     d = _index_t(A.shape[1])
-    (self.b, labels_arg) = data_as(b, _value_t_p)
+    (self._b, labels_arg) = data_as(b, _value_t_p)
     if sparse.issparse(A):
       if not sparse.isspmatrix_csc(A):
         A = A.tocsc()
-      (self.indices, indices_arg) = data_as(A.indices, _index_t_p)
-      (self.indptr, indptr_arg) = data_as(A.indptr, _size_t_p)
-      (self.data, data_arg) = data_as(A.data, _value_t_p)
+      (self._indices, indices_arg) = data_as(A.indices, _index_t_p)
+      (self._indptr, indptr_arg) = data_as(A.indptr, _size_t_p)
+      (self._data, data_arg) = data_as(A.data, _value_t_p)
       nnz = _size_t(A.nnz)
-      self.dataset = _lib.BlitzL1_new_sparse_dataset(
+      self._dataset = _lib.BlitzL1_new_sparse_dataset(
           indices_arg, indptr_arg, data_arg, labels_arg, n, d, nnz)
     else:
       if not A.flags.f_contiguous:
         A = np.asfortranarray(A)
-      (self.data, data_arg) = data_as(A, _value_t_p)
-      self.dataset = _lib.BlitzL1_new_dense_dataset(
+      (self._data, data_arg) = data_as(A, _value_t_p)
+      self._dataset = _lib.BlitzL1_new_dense_dataset(
                               data_arg, labels_arg, n, d)
 
   def _get_A_column_norm(self, j):
-    return _lib.BlitzL1_get_column_norm(self.dataset, _index_t(j))
+    return _lib.BlitzL1_get_column_norm(self._dataset, _index_t(j))
 
   def _get_label_i(self, i):
-    return _lib.BlitzL1_get_label_i(self.dataset, _index_t(i))
+    return _lib.BlitzL1_get_label_i(self._dataset, _index_t(i))
+
+  def compute_lambda_max(self):
+    return _lib.BlitzL1_compute_lambda_max(_solver, self._dataset, self._loss_arg)
 
   def solve(self, lam, log_dir=""):
     lambda_arg = _value_t(lam)
-    (n, d) = self.shape
+    (n, d) = self._shape
     (x, x_arg) = data_as(np.zeros(d), _value_t_p)
     intercept_arg = _value_t()
     obj_arg = _value_t()
     duality_gap_arg = _value_t()
-    loss_arg = _char_p(self.LOSS_TYPE)
     log_dir_arg = _char_p(log_dir)
-    _lib.BlitzL1_solve_problem(_solver, self.dataset, lambda_arg, loss_arg, x_arg, ctypes.byref(intercept_arg), ctypes.byref(obj_arg), ctypes.byref(duality_gap_arg), log_dir_arg)
-    return self.SOLUTION_TYPE(x, intercept_arg.value, obj_arg.value, duality_gap_arg.value)
-    
+    _lib.BlitzL1_solve_problem(_solver, self._dataset, lambda_arg, self._loss_arg, x_arg, ctypes.byref(intercept_arg), ctypes.byref(obj_arg), ctypes.byref(duality_gap_arg), log_dir_arg)
+    return self._SOLUTION_TYPE(x, intercept_arg.value, obj_arg.value, duality_gap_arg.value)
+
+def load_solution(filepath):
+  in_file = open(filepath)
+  sol = pickle.load(in_file)
+  in_file.close
+  return sol
+
 class _Solution(object):
   def __init__(self, x, intercept, obj, duality_gap):
     self.x = x
@@ -140,6 +152,11 @@ class _Solution(object):
       return np.array(result).flatten()
     else:
       return np.dot(A, self.x) + self.intercept
+
+  def save(self, filepath):
+    out_file = open(filepath, "w")
+    pickle.dump(self, out_file)
+    out_file.close()
 
 class LassoSolution(_Solution):
   def predict(self, A):
@@ -159,11 +176,11 @@ class LogRegSolution(_Solution):
     return sum(np.log1p(exp_mbAx))
 
 class LassoProblem(_L1Problem):
-  LOSS_TYPE = "squared"
-  SOLUTION_TYPE = LassoSolution
+  _LOSS_TYPE = "squared"
+  _SOLUTION_TYPE = LassoSolution
 
 class LogRegProblem(_L1Problem):
-  LOSS_TYPE = "logistic"
-  SOLUTION_TYPE = LogRegSolution
+  _LOSS_TYPE = "logistic"
+  _SOLUTION_TYPE = LogRegSolution
 
 

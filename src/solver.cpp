@@ -31,6 +31,37 @@ void Solver::update_intercept(value_t &intercept,
   }
 }
 
+Loss* get_loss_function(char* loss_type) {
+  if (strcmp(loss_type, "logistic") == 0)
+    return new LogisticLoss();
+  else if (strcmp(loss_type, "squared") == 0)
+    return new SquaredLoss();
+  else
+    throw loss_type;
+}
+
+value_t Solver::compute_lambda_max(Dataset *data, char* loss_type) {
+
+  Loss* loss_function = get_loss_function(loss_type);    
+  index_t d = data->get_d();
+  vector<value_t> x(d, 0.0);
+  value_t intercept = 0.0;
+  loss_function->compute_dual_points(
+                    theta, aux_dual, &x[0], intercept, data);
+  if (use_intercept)
+    update_intercept(intercept, loss_function, data);
+
+  value_t lambda_max = 0.0;
+  for (index_t j = 0; j < d; ++j) {
+    value_t ip = data->get_column(j)->inner_product(theta);
+    value_t val = std::abs(ip);
+    if (val > lambda_max)
+      lambda_max = val;
+  }
+
+  return lambda_max;
+}
+
 void Solver::solve(Dataset *data,
                    value_t lambda,
                    char* loss_type,
@@ -40,15 +71,10 @@ void Solver::solve(Dataset *data,
                    value_t &duality_gap,
                    char* log_directory) {
 
-  Loss* loss_function;
-  if (strcmp(loss_type, "logistic") == 0)
-    loss_function = new LogisticLoss();
-  else if (strcmp(loss_type, "squared") == 0)
-    loss_function = new SquaredLoss();
-  else
-    throw loss_type;
 
   index_t d = data->get_d();
+
+  Loss* loss_function = get_loss_function(loss_type);
 
   loss_function->compute_dual_points(
                     theta, aux_dual, x, intercept, data);
@@ -67,6 +93,11 @@ void Solver::solve(Dataset *data,
     for (index_t j = 0; j < d; ++j) {
       loss_gradients[j] = data->get_column(j)->inner_product(theta);
     }
+
+    value_t max_loss_gradient = max_abs(loss_gradients);
+    vector<value_t> omega(theta);
+    scale_vector(omega, lambda / max_loss_gradient);
+    value_t dual_obj = loss_function->dual_obj(omega, data);
 
     vector<value_t> new_x(d, 0.0);
     int backtrack_itr = 0;
@@ -101,8 +132,13 @@ void Solver::solve(Dataset *data,
       x[j] = new_x[j];
 
     primal_obj = primal_loss + lambda * l1_norm(x, d); 
+    duality_gap = primal_obj - dual_obj;
     if (verbose)
-      cout << "Objective: " << primal_obj << endl;
+      cout << "Objective: " << primal_obj 
+           << " Duality gap: " << duality_gap << endl;
+
+    if (duality_gap / std::abs(dual_obj) < tolerance)
+      break;
 
     if (primal_obj >= primal_obj_last) {
       break;

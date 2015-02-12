@@ -137,7 +137,23 @@ void test_Math() {
   vec[3] = 2.0;
   vec[9] = 12.0;
   if (l2_norm_sq(vec) != 173.0)
-    cerr << "Test Math l2_norm_sq failed" << endl;
+    cerr << "Test Math l2_norm_sq vec failed" << endl;
+  if (l2_norm_sq(&vec[0], 10) != 173.0)
+    cerr << "Test Math l2_norm_sq arr failed" << endl;
+
+  if (l1_norm(&vec[0], 10) != 19.0)
+    cerr << "Test Math l1_norm arr failed" << endl;
+
+  if (sum_vector(vec) != 9.0)
+    cerr << "Test Math sum_vector failed" << endl;
+  if (sum_array(&vec[0], 10) != 9.0) 
+    cerr << "Test Math sum_array failed" << endl;
+
+  vector<value_t> scale_vec(vec);
+  scale_vector(scale_vec, 0.25);
+  if (scale_vec[9] != 3.0)
+    cerr << "Test Math scale vector failed" << endl;
+
 
   vector<value_t> vec2;
   vec2.assign(10, 1.0);

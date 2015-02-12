@@ -1,6 +1,8 @@
 from _l1_problem import LassoProblem
 from _l1_problem import LogRegProblem
 
+from _l1_problem import load_solution
+
 from _l1_problem import set_tolerance
 from _l1_problem import get_tolerance
 from _l1_problem import set_max_time

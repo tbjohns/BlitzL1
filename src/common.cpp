@@ -199,4 +199,9 @@ namespace BlitzL1 {
       return 0.0;
   }
 
+  void scale_vector(vector<value_t> &vec, value_t scale) {
+    for (size_t ind = 0; ind < vec.size(); ++ind)
+      vec[ind] *= scale;
+  }
+
 }

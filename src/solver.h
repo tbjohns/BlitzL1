@@ -28,7 +28,13 @@ namespace BlitzL1 {
                             Dataset *data);
 
     public:
-      Solver() {}
+      Solver() {
+        tolerance = 0.0001;
+        use_intercept = true;
+        verbose = false;
+        min_time = -60.0;
+        max_time = 3.15569e9;
+      }
 
       void set_tolerance(value_t val) { tolerance = val; }
       value_t get_tolerance() { return tolerance; }
@@ -49,6 +55,8 @@ namespace BlitzL1 {
                  value_t &primal_obj,
                  value_t &duality_gap,
                  char* log_directory);
+
+      value_t compute_lambda_max(Dataset *data, char* loss_type);
   };
 
 }

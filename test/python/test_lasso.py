@@ -55,6 +55,15 @@ def test_SmallLasso():
   if not approx_equal(sol.obj, 0.4875):
     print "test SmallLasso obj failed"
 
+  save_path = "/tmp/blitzl1_save_test"
+  sol.save(save_path)
+  sol2 = blitzl1.load_solution(save_path)
+  if not np.all(sol.x == sol2.x):
+    print "test SmallLasso save_x failed"
+  if sol.obj != sol2.obj:
+    print "test SmallLasso save_obj failed"
+  os.remove(save_path)
+
 def main():
   test_SimpleLasso()
   test_SmallLasso()

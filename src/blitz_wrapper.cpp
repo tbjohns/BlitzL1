@@ -31,6 +31,10 @@ extern "C" {
     delete data;
   }
 
+  value_t BlitzL1_compute_lambda_max(Solver *solver, Dataset* data, char* loss_type) {
+    return solver->compute_lambda_max(data, loss_type);
+  }
+
   value_t BlitzL1_get_column_norm(Dataset* data, index_t j) {
     return data->get_column(j)->l2_norm();
   }

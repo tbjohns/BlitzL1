@@ -1,10 +1,6 @@
 #include "common.h"
 #include "solver.h"
 
-#include <iostream>
-using std::cout;
-using std::endl;
-
 using namespace BlitzL1;
 
 extern "C" {
@@ -88,19 +84,19 @@ extern "C" {
   }
 
   void BlitzL1_solve_problem(Solver *solver,
-                           Dataset *data,
-                           value_t lambda,
-                           char *loss_type,
-                           value_t *x,
-                           value_t &intercept,
-                           value_t &primal_obj,
-                           value_t &duality_gap,
-                           char *log_dir,
-                           char *solution_status) {
-    solver->solve(data, lambda, loss_type, x, intercept, primal_obj, duality_gap, log_dir, solution_status);
+                             Dataset *data,
+                             value_t lambda,
+                             char *loss_type,
+                             value_t *x,
+                             value_t &intercept,
+                             char* solution_status,
+                             value_t &primal_obj,
+                             value_t &duality_gap,
+                             int &num_iterations,
+                             char *log_dir) {
+    solver->solve(data, lambda, loss_type, x, intercept, solution_status, 
+                  primal_obj, duality_gap, num_iterations, log_dir);
   }
-
-                           
 
 }
 

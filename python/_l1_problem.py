@@ -17,6 +17,7 @@ _index_t_p = ctypes.POINTER(_index_t)
 _size_t_p = ctypes.POINTER(_size_t)
 _char_p = ctypes.c_char_p
 _bool = ctypes.c_bool
+_int = ctypes.c_int
 
 
 _lib.BlitzL1_new_sparse_dataset.restype = _pointer
@@ -32,7 +33,7 @@ _lib.BlitzL1_get_label_i.argtype = [_pointer, _index_t]
 _lib.BlitzL1_new_solver.restype = _pointer
 _lib.BlitzL1_new_solver.argtype = None
 _lib.BlitzL1_solve_problem.restype = None
-_lib.BlitzL1_solve_problem.argtype = [_pointer, _pointer, _value_t, _char_p, _value_t_p, _value_t, _value_t, _value_t, _char_p, _char_p]
+_lib.BlitzL1_solve_problem.argtype = [_pointer, _pointer, _value_t, _char_p, _value_t_p, _value_t, _char_p, _value_t, _value_t, _int, _char_p]
 _lib.BlitzL1_set_tolerance.restype = None
 _lib.BlitzL1_set_tolerance.argtype = [_pointer, _value_t]
 _lib.BlitzL1_get_tolerance.restype = _value_t
@@ -78,11 +79,11 @@ def set_verbose(value):
 def get_verbose():
   return _lib.BlitzL1_get_verbose(_solver)
 
+
 def data_as(obj, ctypes_type):
   if obj.dtype != ctypes_type:
     obj = obj.astype(ctypes_type)
   return (obj, obj.ctypes.data_as(ctypes_type))
-
 
 
 class _L1Problem(object):
@@ -91,8 +92,6 @@ class _L1Problem(object):
     self._load_dataset(A, b)
 
   def _load_dataset(self, A, b):
-    #if not sparse.issparse(A):
-      #A = sparse.csc_matrix(A)
     self._shape = A.shape
     n = _index_t(A.shape[0])
     d = _index_t(A.shape[1])
@@ -122,24 +121,65 @@ class _L1Problem(object):
   def compute_lambda_max(self):
     return _lib.BlitzL1_compute_lambda_max(_solver, self._dataset, self._loss_arg)
 
-  def solve(self, lam, log_dir=""):
-    if log_dir:
+  def solve(self, 
+            l1_penalty, 
+            initial_x=None, 
+            initial_intercept=None, 
+            log_directory=""):
+
+    (n, d) = self._shape
+
+    # Initial conditions:
+    if initial_x is not None:
+      x = initial_x
+    else:
+      x = np.zeros(d)
+    (x, x_arg) = data_as(x, _value_t_p)
+    if initial_intercept is not None:
+      intercept_arg = _value_t(initial_intercept)
+    else:
+      intercept_arg = _value_t(0.0)
+
+    # Regularization strength:
+    lambda_arg = _value_t(l1_penalty)
+
+    # Log directory:
+    if log_directory:
       try:
-        os.mkdir(log_dir)
+        os.mkdir(log_directory)
       except:
         pass
-    lambda_arg = _value_t(lam)
-    (n, d) = self._shape
-    (x, x_arg) = data_as(np.zeros(d), _value_t_p)
-    intercept_arg = _value_t()
+    log_dir_arg = _char_p(log_directory)
+
+    # Misc solution variables:
     obj_arg = _value_t()
     duality_gap_arg = _value_t()
-    log_dir_arg = _char_p(log_dir)
+    num_itr_arg = _int()
     solution_status = " " * 64
     solution_status_arg = _char_p(solution_status)
-    _lib.BlitzL1_solve_problem(_solver, self._dataset, lambda_arg, self._loss_arg, x_arg, ctypes.byref(intercept_arg), ctypes.byref(obj_arg), ctypes.byref(duality_gap_arg), log_dir_arg, solution_status_arg)
+
+    # Solve problem:
+    _lib.BlitzL1_solve_problem(_solver, 
+                               self._dataset, 
+                               lambda_arg, 
+                               self._loss_arg, 
+                               x_arg, 
+                               ctypes.byref(intercept_arg), 
+                               solution_status_arg,
+                               ctypes.byref(obj_arg), 
+                               ctypes.byref(duality_gap_arg), 
+                               ctypes.byref(num_itr_arg),
+                               log_dir_arg) 
+
     solution_status = solution_status.strip().strip('\x00')
-    return self._SOLUTION_TYPE(x, intercept_arg.value, obj_arg.value, duality_gap_arg.value, solution_status)
+
+    # Return solution object:
+    return self._SOLUTION_TYPE(x, 
+                               intercept_arg.value, 
+                               obj_arg.value, 
+                               duality_gap_arg.value, 
+                               num_itr_arg.value,
+                               solution_status)
 
 def load_solution(filepath):
   in_file = open(filepath)
@@ -148,12 +188,13 @@ def load_solution(filepath):
   return sol
 
 class _Solution(object):
-  def __init__(self, x, intercept, obj, duality_gap, status):
+  def __init__(self, x, intercept, obj, duality_gap, num_itr, status):
     self.x = x
     self.intercept = intercept
-    self.obj = obj
+    self.objective_value = obj
     self.duality_gap = duality_gap
     self.status = status
+    self._num_iterations = num_itr
 
   def _compute_Ax(self, A):
     if sparse.issparse(A):

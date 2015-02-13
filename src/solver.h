@@ -49,13 +49,14 @@ namespace BlitzL1 {
 
       void solve(Dataset *data,
                  value_t lambda,
-                 const char* loss_type,
-                 value_t* x,
+                 const char *loss_type,
+                 value_t *x,
                  value_t &intercept,
+                 char *solution_status,
                  value_t &primal_obj,
                  value_t &duality_gap,
-                 const char* log_directory,
-                 char* solution_status);
+                 int &num_iterations,
+                 const char* log_directory);
 
       value_t compute_lambda_max(Dataset *data, const char* loss_type);
   };

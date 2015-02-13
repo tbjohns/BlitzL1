@@ -35,11 +35,11 @@ def test_SimpleLasso():
   if not approx_equal(sol.intercept, -0.25):
     print "test SimpleLasso intercept failed"
 
-  if not approx_equal(sol.obj, 9.75):
+  if not approx_equal(sol.objective_value, 9.75):
     print "test SimpleLasso obj failed"
 
   python_obj = sol.evaluate_loss(A, b) + np.linalg.norm(sol.x, ord=1)
-  if not approx_equal(sol.obj, python_obj):
+  if not approx_equal(sol.objective_value, python_obj):
     print "test SimpleLasso python_obj failed"
 
 
@@ -52,7 +52,7 @@ def test_SmallLasso():
   A = sparse.csc_matrix(A)
   prob = blitzl1.LassoProblem(A, b)
   sol = prob.solve(2)
-  if not approx_equal(sol.obj, 0.4875):
+  if not approx_equal(sol.objective_value, 0.4875):
     print "test SmallLasso obj failed"
 
   save_path = "/tmp/blitzl1_save_test"
@@ -60,14 +60,14 @@ def test_SmallLasso():
   sol2 = blitzl1.load_solution(save_path)
   if not np.all(sol.x == sol2.x):
     print "test SmallLasso save_x failed"
-  if sol.obj != sol2.obj:
+  if sol.objective_value != sol2.objective_value:
     print "test SmallLasso save_obj failed"
   os.remove(save_path)
 
 
   blitzl1.set_tolerance(0.1)
   log_path = "/tmp/blitzl1_log_test/"
-  sol = prob.solve(5.0, log_dir=log_path)
+  sol = prob.solve(5.0, log_directory=log_path)
   log_point = 0
   while True:
     time_file = "%s/time.%d" % (log_path, log_point)
@@ -78,7 +78,7 @@ def test_SmallLasso():
     except:
       break
     log_point += 1
-  if obj != sol.obj:
+  if obj != sol.objective_value:
     print "test SmallLasso log_obj failed"
   if time <= 0.0:
     print "test SmallLasso log_time failed"

@@ -67,28 +67,31 @@ value_t Solver::compute_lambda_max(Dataset *data, const char* loss_type) {
 
 void Solver::solve(Dataset *data,
                    value_t lambda,
-                   const char* loss_type,
+                   const char *loss_type,
                    value_t* x,
                    value_t &intercept,
+                   char *solution_status,
                    value_t &primal_obj,
                    value_t &duality_gap,
-                   const char* log_directory,
-                   char* solution_status) {
+                   int &num_iterations,
+                   const char *log_directory) {
 
   Timer timer;
   Logger logger(log_directory);
 
-  index_t d = data->get_d();
-
   Loss* loss_function = get_loss_function(loss_type);
-
   loss_function->compute_dual_points(
                     theta, aux_dual, x, intercept, data);
+
+  num_iterations = 0;
+  index_t d = data->get_d();
   value_t primal_loss = loss_function->primal_loss(theta, aux_dual);
   primal_obj = primal_loss + lambda * l1_norm(x, d);
   value_t L = 5 * loss_function->L;
 
   while (true) {
+    num_iterations++;
+
     if (use_intercept)
       update_intercept(intercept, loss_function, data);
 

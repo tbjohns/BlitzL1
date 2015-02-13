@@ -1,0 +1,39 @@
+rcv1 logistic 0.1 
+rcv1 logistic 0.05 
+rcv1 logistic 0.01 
+rcv1 logistic 0.005
+rcv1 logistic 0.03 intercept=false
+rcv1 logistic 0.02 tolerance=0
+rcv1 logistic 0.01 initial=0.05
+realsim logistic 0.1
+realsim logistic 0.05
+realsim logistic 0.01
+realsim logistic 0.005
+realsim logistic 0.1 intercept=false
+realsim logistic 0.05 tolerance=0
+realsim logistic 0.02 initial=0.04
+gisette logistic 0.1
+gisette logistic 0.05
+gisette logistic 0.01
+gisette logistic 0.001
+gisette logistic 0.01 intercept=false
+gisette logistic 0.1 tolerance=0
+gisette logistic 0.1 initial=0.2
+news20 logistic 0.1
+news20 logistic 0.05
+news20 logistic 0.01
+news20 logistic 0.001
+news20 logistic 0.05 intercept=false
+news20 logistic 0.01 tolerance=0
+news20 logistic 0.01 initial=0.05
+finance squared 0.1
+finance squared 0.05
+finance squared 0.01
+finance squared 0.001
+finance squared 0.05 intercept=false
+finance squared 0.02 tolerance=0
+finance squared 0.01 initial=0.05
+news20 squared 0.1
+gisette squared 0.05
+rcv1 squared 0.01
+realsim squared 0.05

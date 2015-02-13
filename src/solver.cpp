@@ -65,6 +65,39 @@ value_t Solver::compute_lambda_max(Dataset *data, const char* loss_type) {
   return lambda_max;
 }
 
+/*
+void Solver::run_prox_newton_iteration() {
+  // Data
+  // loss_function
+
+  // Initialize iteration:
+  index_t n = data->get_n();
+  index_t d = data->get_d();
+  vector<value_t> Delta_x(d, 0.0);
+  vector<value_t> A_Delta_x.assign(n, 0.0);
+  value_t Delta_intercept = 0.0;
+
+  // Set up gradient and hessian values:
+  vector<value_t> hess_cache;
+  loss_function->compute_H(hess_cache, theta, aux_dual, data);
+  vector<value_t> grad_cache(d, 0.0);
+  for (index_t j = 0; j < d; ++j)
+    grad_cache[j] = data->get_column(j)->ip(theta);
+  
+  // Approximately solve for newton direction:
+  for (int cd_itr = 0; cd_itr < 15; ++cd_itr) {
+
+    for (index_t j = 0; j < d; ++j) {
+      const Column *col = data->get_column(j);
+
+      value_t hess = hess_cache[j];
+      value_t grad = grad_cache[j];
+    }
+
+  }
+}
+*/
+
 void Solver::solve(Dataset *data,
                    value_t lambda,
                    const char *loss_type,

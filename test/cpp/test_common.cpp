@@ -20,6 +20,14 @@ void test_SparseColumnFromPointers() {
   vector<value_t> vec;
   for (index_t i = 1; i <= length; ++i)
     vec.push_back((value_t) i);
+  vector<value_t> vec2;
+
+  for (index_t i = 0; i < length; ++i) {
+    if (i % 2 == 0) 
+      vec2.push_back(0.7);
+    else
+      vec2.push_back(0.0);
+  }
 
   if (c->mean() != 1.0)
     cerr << "Test SparseColumnFromPointers mean failed" << endl;
@@ -35,6 +43,9 @@ void test_SparseColumnFromPointers() {
 
   if (c->inner_product(vec) != 58.0)
     cerr << "Test SparseColumnFromPointers inner_product failed" << endl;
+
+  if (c->weighted_inner_product(vec, vec2) != 1.4)
+    cerr << "Test SparseColumnFromPointers weighted_inner_product failed" << endl;
 
   if (c->h_norm_sq(vec) != 272.0)
     cerr << "Test SparseColumnFromPointers h_norm_sq failed" << endl;
@@ -53,6 +64,14 @@ void test_DenseColumnFromPointers() {
   for (index_t i = 1; i <= length; ++i)
     vec.push_back((value_t) i);
 
+  vector<value_t> vec2;
+  for (index_t i = 0; i < length; ++i) {
+    if (i % 2 == 0) 
+      vec2.push_back(0.7);
+    else
+      vec2.push_back(0.0);
+  }
+
   if (c->mean() != 1.0)
     cerr << "Test DenseColumnFromPointers mean failed" << endl;
 
@@ -67,6 +86,9 @@ void test_DenseColumnFromPointers() {
 
   if (c->inner_product(vec) != 58.0)
     cerr << "Test DenseColumnFromPointers inner_product failed" << endl;
+
+  if (c->weighted_inner_product(vec, vec2) != 1.4)
+    cerr << "Test DenseColumnFromPointers weghted_inner_product failed" << endl;
 
   if (c->h_norm_sq(vec) != 272.0)
     cerr << "Test DenseColumnFromPointers h_norm_sq failed" << endl;

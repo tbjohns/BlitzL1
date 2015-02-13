@@ -33,6 +33,15 @@ namespace BlitzL1 {
     return result;
   }
 
+  value_t SparseColumnFromPointers::weighted_inner_product(const std::vector<value_t> &vec, const std::vector<value_t> &weights) const {
+    value_t result = 0.0;
+    for (index_t ind = 0; ind < nnz; ++ind) {
+      index_t i = indices[ind];
+      result += values[ind] * vec[i] * weights[i];
+    }
+    return result;
+  }
+
   void SparseColumnFromPointers::add_multiple(vector<value_t> &target, value_t scaler) const {
     for (index_t ind = 0; ind < nnz; ++ind) {
       index_t i = indices[ind];
@@ -73,6 +82,12 @@ namespace BlitzL1 {
     return result;
   }
 
+  value_t DenseColumnFromPointers::weighted_inner_product(const std::vector<value_t> &vec, const std::vector<value_t> &weights) const {
+    value_t result = 0.0;
+    for (index_t i = 0; i < length; ++i)
+      result += values[i] * vec[i] * weights[i];
+    return result;
+  }
 
   void DenseColumnFromPointers::add_multiple(vector<value_t> &target, value_t scaler) const {
     for (index_t i = 0; i < length; ++i)
@@ -180,6 +195,7 @@ namespace BlitzL1 {
       result += vec1[ind] * vec2[ind];
     return result;
   }
+
 
   value_t max_abs(const vector<value_t> &vec) {
     value_t result = 0.0;

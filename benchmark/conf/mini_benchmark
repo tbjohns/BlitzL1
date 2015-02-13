@@ -1,3 +1,7 @@
-rcv1 logistic 0.5 intercept=false initial=0.6
-realsim logistic 0.5 tolerance=0.1
-realsim logistic 0.5 
+rcv1 logistic 0.01 initial=0.05
+rcv1 squared 0.01
+realsim logistic 0.1 intercept=false
+realsim squared 0.05
+gisette logistic 0.1
+news20 logistic 0.01 initial=0.05
+finance squared 0.1

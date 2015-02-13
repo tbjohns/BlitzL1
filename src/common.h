@@ -19,6 +19,7 @@ namespace BlitzL1 {
       index_t get_length() const { return length; }
       index_t get_nnz() const { return nnz; } 
       virtual value_t inner_product(const std::vector<value_t> &vec) const = 0;
+      virtual value_t weighted_inner_product(const std::vector<value_t> &vec, const std::vector<value_t> &weights) const = 0;
       virtual value_t h_norm_sq(const std::vector<value_t> &h_values) const = 0;
       virtual void add_multiple(std::vector<value_t> &target, 
                                 value_t scaler) const = 0;
@@ -38,6 +39,7 @@ namespace BlitzL1 {
                          index_t nnz,
                          index_t length);
       value_t inner_product(const std::vector<value_t> &vec) const;
+      value_t weighted_inner_product(const std::vector<value_t> &vec, const std::vector<value_t> &weights) const;
       void add_multiple(std::vector<value_t> &target, 
                         value_t scaler) const;
       value_t h_norm_sq(const std::vector<value_t> &h_values) const;
@@ -51,6 +53,7 @@ namespace BlitzL1 {
     public:
       DenseColumnFromPointers(value_t *values, index_t length);
       value_t inner_product(const std::vector<value_t> &vec) const;
+      value_t weighted_inner_product(const std::vector<value_t> &vec, const std::vector<value_t> &weights) const;
       void add_multiple(std::vector<value_t> &target, value_t scaler) const;
       value_t h_norm_sq(const std::vector<value_t> &h_values) const;
       value_t mean() const;

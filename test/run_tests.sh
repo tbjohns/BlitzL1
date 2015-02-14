@@ -10,7 +10,7 @@ for file in ${DIR}/python/*
 do
   if [[ ! -d $file && -x $file ]]
     then
-    $file
+    python -W ignore $file
   fi
 done
 echo "Done."

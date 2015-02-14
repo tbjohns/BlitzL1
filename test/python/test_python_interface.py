@@ -1,5 +1,3 @@
-#!/usr/bin/env python -W ignore 
-
 import os
 import sys
 import numpy as np

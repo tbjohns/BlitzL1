@@ -1,0 +1,14 @@
+2015-02-13 19:20:11
+
+rcv1 logistic 0.01 initial=0.05: 136.31846
+rcv1 squared 0.01: 15.30280
+realsim logistic 0.1 intercept=false: 86.02768
+realsim squared 0.05: 3.79570
+gisette logistic 0.1: 2271.13559
+news20 logistic 0.01 initial=0.05: 693.32818
+finance squared 0.1: 107.63281
+
+
+Total time: 3313.54122
+log10-adjusted objective: 14.06238
+

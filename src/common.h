@@ -101,6 +101,7 @@ namespace BlitzL1 {
   value_t l1_norm(value_t *x, index_t d);
   value_t sum_vector(const std::vector<value_t> &vec);
   value_t sum_array(const value_t *values, index_t length);
+  value_t add_scaler(std::vector<value_t> &vec, value_t scaler);
   value_t inner_product(const std::vector<value_t> &vec1, 
                         const std::vector<value_t> &vec2);
   value_t max_abs(const std::vector<value_t> &vec);

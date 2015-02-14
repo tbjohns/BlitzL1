@@ -191,6 +191,10 @@ void test_Math() {
   if (max_abs(vec3) != 7.8)
     cerr << "Test Math max_abs failed" << endl;
 
+  add_scaler(vec3, 1.0);
+  if (vec3[3] != 5.4 || vec2[1] != 1.0)
+    cerr << "Test Math add_scaler failed" << endl;
+
   if (soft_threshold(-5.5, 5.5) != 0.0 ||
       soft_threshold(-5.5, 2.0) != -3.5 ||
       soft_threshold(-3, 5.5) != 0.0 ||

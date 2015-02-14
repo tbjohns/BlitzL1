@@ -78,7 +78,7 @@ def test_SmallLasso():
     except:
       break
     log_point += 1
-  if obj != sol.objective_value:
+  if not approx_equal(obj, sol.objective_value):
     print "test SmallLasso log_obj failed"
   if time <= 0.0:
     print "test SmallLasso log_time failed"

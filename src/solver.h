@@ -27,6 +27,12 @@ namespace BlitzL1 {
                             Loss *loss_function,
                             Dataset *data);
 
+      void run_prox_newton_iteration(value_t *x, 
+                                     value_t &intercept, 
+                                     value_t lambda,
+                                     Loss *loss_function, 
+                                     Dataset *data);
+
     public:
       Solver() {
         tolerance = 0.0001;

@@ -35,9 +35,8 @@ def test_SmallLogReg():
     print "test SmallLogReg python_obj failed"
 
   blitzl1.set_use_intercept(True)
+  blitzl1.set_tolerance(0.0001)
   sol = prob.solve(1.5)
-  if not approx_equal(sol.intercept, -0.198667440008):
-    print "test SmallLogReg intercept failed"
 
   blitzl1.set_tolerance(0.01)
   sol2 = prob.solve(1.5, initial_x=sol.x, initial_intercept=sol.intercept)

@@ -19,6 +19,9 @@ const value_t L_INCREASE_RATIO = 1.25;
 void Solver::update_intercept(value_t &intercept, 
                               Loss *loss_function,
                               Dataset *data) {
+  if (!use_intercept)
+    return;
+
   // 1-d newton method:
   vector<value_t> H;
   for (int itr = 0; itr < 10; ++itr) {
@@ -51,8 +54,7 @@ value_t Solver::compute_lambda_max(Dataset *data, const char* loss_type) {
   value_t intercept = 0.0;
   loss_function->compute_dual_points(
                     theta, aux_dual, &x[0], intercept, data);
-  if (use_intercept)
-    update_intercept(intercept, loss_function, data);
+  update_intercept(intercept, loss_function, data);
 
   value_t lambda_max = 0.0;
   for (index_t j = 0; j < d; ++j) {
@@ -65,38 +67,76 @@ value_t Solver::compute_lambda_max(Dataset *data, const char* loss_type) {
   return lambda_max;
 }
 
-/*
-void Solver::run_prox_newton_iteration() {
-  // Data
-  // loss_function
+void Solver::run_prox_newton_iteration(value_t *x, 
+                                       value_t &intercept, 
+                                       value_t lambda,
+                                       Loss *loss_function, 
+                                       Dataset *data) {
 
   // Initialize iteration:
   index_t n = data->get_n();
   index_t d = data->get_d();
   vector<value_t> Delta_x(d, 0.0);
-  vector<value_t> A_Delta_x.assign(n, 0.0);
+  vector<value_t> A_Delta_x(n, 0.0);
   value_t Delta_intercept = 0.0;
 
   // Set up gradient and hessian values:
-  vector<value_t> hess_cache;
-  loss_function->compute_H(hess_cache, theta, aux_dual, data);
+  vector<value_t> H;
+  loss_function->compute_H(H, theta, aux_dual, data);
   vector<value_t> grad_cache(d, 0.0);
-  for (index_t j = 0; j < d; ++j)
-    grad_cache[j] = data->get_column(j)->ip(theta);
+  vector<value_t> hess_cache(d, 0.0);
+  for (index_t j = 0; j < d; ++j) {
+    grad_cache[j] = data->get_column(j)->inner_product(theta);
+    hess_cache[j] = data->get_column(j)->h_norm_sq(H);
+  }
+
+  // Cache values for updating intercept:
+  value_t sum_theta = sum_vector(theta);
+  value_t sum_H = sum_vector(H);
   
   // Approximately solve for newton direction:
-  for (int cd_itr = 0; cd_itr < 15; ++cd_itr) {
+  for (int cd_itr = 0; cd_itr < 10; ++cd_itr) {
 
     for (index_t j = 0; j < d; ++j) {
       const Column *col = data->get_column(j);
 
+      // Compute hessian and gradient for coordinate j:
       value_t hess = hess_cache[j];
-      value_t grad = grad_cache[j];
+      if (hess == 0.0)
+        continue;
+
+      value_t grad = grad_cache[j] 
+                   + col->weighted_inner_product(A_Delta_x, H);
+
+      // Apply coordinate descent update:
+      value_t old_value = x[j] + Delta_x[j]; 
+      value_t proposal = old_value - grad / hess;
+      value_t new_value = soft_threshold(proposal, lambda / hess);
+      value_t diff = new_value - old_value;
+
+      if (diff == 0.0)
+        continue;
+      
+      Delta_x[j] = new_value - x[j];
+      col->add_multiple(A_Delta_x, diff);
     }
 
+    // Update intercept:
+    if (use_intercept) {
+      value_t ip = inner_product(H, A_Delta_x);
+      value_t diff = -(ip + sum_theta)/sum_H;
+      Delta_intercept += diff;
+      add_scaler(A_Delta_x, diff);
+    }
   }
+
+  // Apply update:
+  for (index_t j = 0; j < d; ++j)
+    x[j] += Delta_x[j];
+  intercept += Delta_intercept;
+  loss_function->compute_dual_points(
+                    theta, aux_dual, x, intercept, data);
 }
-*/
 
 void Solver::solve(Dataset *data,
                    value_t lambda,
@@ -120,16 +160,13 @@ void Solver::solve(Dataset *data,
   index_t d = data->get_d();
   value_t primal_loss = loss_function->primal_loss(theta, aux_dual);
   primal_obj = primal_loss + lambda * l1_norm(x, d);
-  value_t L = 5 * loss_function->L;
 
   while (true) {
     num_iterations++;
-
-    if (use_intercept)
-      update_intercept(intercept, loss_function, data);
-
-    value_t primal_loss_last = primal_loss;
     value_t primal_obj_last = primal_obj;
+
+    update_intercept(intercept, loss_function, data);
+
     vector<value_t> loss_gradients;
     loss_gradients.assign(d, 0.0);
     for (index_t j = 0; j < d; ++j) {
@@ -140,42 +177,18 @@ void Solver::solve(Dataset *data,
     vector<value_t> omega(theta);
     scale_vector(omega, lambda / max_loss_gradient);
     value_t dual_obj = loss_function->dual_obj(omega, data);
-
-    vector<value_t> new_x(d, 0.0);
-    int backtrack_itr = 0;
-    while (backtrack_itr++ < MAX_BACKTRACK) {
-      for (index_t j = 0; j < d; ++j) {
-        value_t norm_sq = data->get_column(j)->l2_norm_sq();
-        value_t new_value = x[j] - loss_gradients[j] / norm_sq / L;
-        value_t threshold = lambda / norm_sq / L;
-        new_x[j] = soft_threshold(new_value, threshold);
-      }
-      
-      loss_function->compute_dual_points(
-                        theta, aux_dual, &new_x[0], intercept, data);
-      primal_loss = loss_function->primal_loss(theta, aux_dual);
-
-      value_t Q = primal_loss_last;
-      for (index_t j = 0; j < d; ++j) {
-        value_t norm_sq = data->get_column(j)->l2_norm_sq();
-        value_t delta = new_x[j] - x[j];
-        Q += delta * loss_gradients[j];
-        Q += L / 2 * norm_sq * delta * delta;
-      }
-
-      if (primal_loss <= Q) {
-        break;
-      } else {
-        L *= L_INCREASE_RATIO;
-      }
+  
+    // Solve subproblem:
+    for (int prox_newt_itr = 0; prox_newt_itr < 5; prox_newt_itr++){
+      run_prox_newton_iteration(x, intercept, lambda, loss_function, data); 
+      update_intercept(intercept, loss_function, data);
     }
-    
-    for (index_t j = 0; j < d; ++j)
-      x[j] = new_x[j];
 
+    primal_loss = loss_function->primal_loss(theta, aux_dual);
     primal_obj = primal_loss + lambda * l1_norm(x, d); 
     duality_gap = primal_obj - dual_obj;
 
+    // Print/record results:
     double elapsed_time = timer.elapsed_time();
     timer.pause_timing();
     if (verbose)
@@ -186,6 +199,7 @@ void Solver::solve(Dataset *data,
     logger.log_point(elapsed_time, primal_obj);
     timer.continue_timing();
 
+    // Test stopping conditions:
     if ((duality_gap / std::abs(dual_obj) < tolerance) &&
         (elapsed_time > min_time)) {
       sprintf(solution_status, "reached stopping tolerance");
@@ -201,8 +215,6 @@ void Solver::solve(Dataset *data,
       sprintf(solution_status, "reached time limit");
       break;
     }
-
   }
-
 }
 

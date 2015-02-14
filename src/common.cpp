@@ -181,6 +181,11 @@ namespace BlitzL1 {
     return result;
   }
 
+  value_t add_scaler(std::vector<value_t> &vec, value_t scaler) {
+    for (size_t ind = 0; ind < vec.size(); ++ind)
+      vec[ind] += scaler;
+  }
+
   value_t sum_vector(const vector<value_t> &vec) {
     value_t result = 0.0;
     for (size_t ind = 0; ind < vec.size(); ++ind)

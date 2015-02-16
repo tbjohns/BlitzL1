@@ -205,6 +205,9 @@ void test_Math() {
   if (l1_norm(x, 5) != 5.8)
     cerr << "Test Math l1_norm failed" << endl; 
 
+  if (l0_norm(x, 5) != 3)
+    cerr << "Test l0_norm failed" << endl;
+
 }
 
 int main() {

@@ -6,19 +6,21 @@
 #include <cstring>
 #include <stdio.h>
 #include <iostream>
+#include <algorithm>
 
 using namespace BlitzL1;
 
 using std::vector;
 using std::cout;
 using std::endl;
+using std::min;
 
 const int MAX_BACKTRACK = 20;
 const value_t L_INCREASE_RATIO = 1.25;
 
 void Solver::update_intercept(value_t &intercept, 
-                              Loss *loss_function,
-                              Dataset *data) {
+                              const Loss *loss_function,
+                              const Dataset *data) {
   if (!use_intercept)
     return;
 
@@ -70,8 +72,8 @@ value_t Solver::compute_lambda_max(Dataset *data, const char* loss_type) {
 void Solver::run_prox_newton_iteration(value_t *x, 
                                        value_t &intercept, 
                                        value_t lambda,
-                                       Loss *loss_function, 
-                                       Dataset *data) {
+                                       const Loss *loss_function, 
+                                       const Dataset *data) {
 
   // Initialize iteration:
   index_t n = data->get_n();
@@ -138,7 +140,46 @@ void Solver::run_prox_newton_iteration(value_t *x,
                     theta, aux_dual, x, intercept, data);
 }
 
-void Solver::solve(Dataset *data,
+value_t Solver::priority_norm_j(index_t j, const Dataset* data) {
+  if (use_intercept)
+    return data->get_column(j)->l2_norm_centered();
+  else
+    return data->get_column(j)->l2_norm();
+}
+
+value_t Solver::compute_alpha(const Dataset* data, value_t lambda, value_t theta_scale) {
+  value_t best_alpha = 1.0;
+  index_t d = data->get_d();
+  for (index_t j = 0; j < d; ++j) {
+    value_t norm = priority_norm_j(j, data);
+    if (norm <= 0.0)
+      continue;
+
+    value_t l = ATphi[j];
+    value_t r = theta_scale * ATtheta[j];
+    if (abs(r) <= lambda)
+      continue;
+
+    value_t alpha;
+    if (r >= 0)
+      alpha = (lambda - l)/(r - l);
+    else
+      alpha = (-lambda - l)/(r - l);
+
+    if (alpha < best_alpha)
+      best_alpha = alpha;
+  }
+  return best_alpha;
+}
+
+void Solver::update_phi(value_t alpha, value_t theta_scale) {
+  for (size_t j = 0; j < ATphi.size(); ++j) 
+    ATphi[j] = (1 - alpha) * ATphi[j] + alpha * theta_scale * ATtheta[j];
+  for (size_t i = 0; i < phi.size(); ++i)
+    phi[i] = (1 - alpha) * phi[i] + alpha * theta_scale * theta[i];
+}
+
+void Solver::solve(const Dataset *data,
                    value_t lambda,
                    const char *loss_type,
                    value_t* x,
@@ -157,26 +198,26 @@ void Solver::solve(Dataset *data,
                     theta, aux_dual, x, intercept, data);
 
   num_iterations = 0;
+  index_t n = data->get_n();
   index_t d = data->get_d();
+  phi.assign(n, 0.0);
+  ATphi.assign(d, 0.0);
+  ATtheta.resize(d);
   value_t primal_loss = loss_function->primal_loss(theta, aux_dual);
   primal_obj = primal_loss + lambda * l1_norm(x, d);
 
-  while (true) {
-    num_iterations++;
+  while (++num_iterations) {
     value_t primal_obj_last = primal_obj;
 
     update_intercept(intercept, loss_function, data);
 
-    vector<value_t> loss_gradients;
-    loss_gradients.assign(d, 0.0);
     for (index_t j = 0; j < d; ++j) {
-      loss_gradients[j] = data->get_column(j)->inner_product(theta);
+      ATtheta[j] = data->get_column(j)->inner_product(theta);
     }
 
-    value_t max_loss_gradient = max_abs(loss_gradients);
-    vector<value_t> omega(theta);
-    scale_vector(omega, lambda / max_loss_gradient);
-    value_t dual_obj = loss_function->dual_obj(omega, data);
+    value_t max_loss_gradient = max_abs(ATtheta);
+    value_t theta_scaler = lambda / max_loss_gradient;
+    value_t dual_obj = loss_function->dual_obj(theta, data, theta_scaler);
   
     // Solve subproblem:
     for (int prox_newt_itr = 0; prox_newt_itr < 5; prox_newt_itr++){

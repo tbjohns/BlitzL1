@@ -174,6 +174,15 @@ namespace BlitzL1 {
     return result;
   }
 
+  index_t l0_norm(value_t *values, index_t len) {
+    index_t result = 0;
+    for (index_t ind = 0; ind < len; ++ind) {
+      if (values[ind] != 0.0)
+        result++;
+    }
+    return result;
+  }
+
   value_t sum_array(const value_t *values, index_t length) {
     value_t result =  0.0;
     for (index_t ind = 0; ind < length; ++ind)
@@ -181,7 +190,7 @@ namespace BlitzL1 {
     return result;
   }
 
-  value_t add_scaler(std::vector<value_t> &vec, value_t scaler) {
+  void add_scaler(std::vector<value_t> &vec, value_t scaler) {
     for (size_t ind = 0; ind < vec.size(); ++ind)
       vec[ind] += scaler;
   }

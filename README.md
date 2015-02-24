@@ -1,6 +1,6 @@
 # BlitzL1
 
-BlitzL1 is an efficient library for L1-regularized loss minimization in early stages of development.  Blitz can be called from Python with minimal overhead (support for R to come later).  For larger problems, we also intend to provide a distributed implementation using [rabit](https://github.com/tqchen/rabit).
+BlitzL1 is an efficient library for L1-regularized loss minimization in early stages of development.  Blitz can be called from Python with minimal overhead (support for R to come later).  For larger problems, we also intend to provide an out-of-core implementation and a distributed implementation using [rabit](https://github.com/tqchen/rabit).  Currently, the library is a straightforward coordinate descent implementation (i.e. many features and optimizations not implemented yet).
 
 ## Try it out
 

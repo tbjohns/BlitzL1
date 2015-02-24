@@ -36,10 +36,12 @@ def save_results(experiment_names, experiment_times, benchmark_name, code_versio
     out_file.writelines("%s: %.5f\n" % (tag, run_time))
   out_file.writelines("\n\n")
   out_file.writelines("Total time: %.5f\n" % sum(experiment_times))
+  time_avg = sum(experiment_times)/len(experiment_times)
+  out_file.writelines("Average time: %.5f\n" % time_avg)
 
   times = np.array(experiment_times)
-  obj = sum(np.log10(times))
-  out_file.writelines("log10-adjusted objective: %.5f\n\n" % obj)
+  obj = sum(np.log10(times)) / len(times)
+  out_file.writelines("log10-adjusted average: %.5f\n\n" % obj)
   out_file.close()
 
 def main():
@@ -52,6 +54,7 @@ def main():
   experiment_names = []
   experiment_times = []
   for line in conf_file:
+    print "\n\n", line
     line_values = line.split()
     dataset_name = line_values[0]
     loss_type = line_values[1]
@@ -91,7 +94,7 @@ def main():
         initial_intercept = sol.intercept
     
     log_dir = "/tmp/blitzl1_benchmark"
-    os.system("rm -r %s" % log_dir)
+    os.system("rm -rf %s" % log_dir)
     os.mkdir(log_dir)
 
     l1_penalty = lammax * lambda_ratio

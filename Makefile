@@ -5,7 +5,7 @@ OBJ_FILES = $(patsubst src/%.cpp,obj/%.o,$(CPP_FILES))
 TEST_FILES = $(wildcard test/cpp/*.cpp)
 TEST_BIN = $(patsubst test/cpp/%.cpp,test/bin/%,$(TEST_FILES))
 
-FLAGS = -Wall -O3 -g
+FLAGS = -Wall -O3
 
 SLIB = libblitzl1.so
 

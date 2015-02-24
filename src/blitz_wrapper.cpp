@@ -84,9 +84,9 @@ extern "C" {
   }
 
   void BlitzL1_solve_problem(Solver *solver,
-                             Dataset *data,
+                             const Dataset *data,
                              value_t lambda,
-                             char *loss_type,
+                             const char *loss_type,
                              value_t *x,
                              value_t &intercept,
                              char* solution_status,

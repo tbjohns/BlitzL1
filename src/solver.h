@@ -14,8 +14,9 @@ namespace BlitzL1 {
       std::vector<value_t> ATphi;
       std::vector<value_t> aux_dual;
 
+      index_t working_set_size;
       std::vector<index_t> prioritized_features;
-      std::vector<index_t> feature_priorities;
+      std::vector<value_t> feature_priorities;
 
       value_t tolerance;
       bool verbose;
@@ -24,14 +25,20 @@ namespace BlitzL1 {
       value_t max_time;
 
       void update_intercept(value_t &intercept, 
-                            Loss *loss_function,
-                            Dataset *data);
+                            const Loss *loss_function,
+                            const Dataset *data);
+
+      void prioritize_features(const Dataset *data, value_t lambda);
 
       void run_prox_newton_iteration(value_t *x, 
                                      value_t &intercept, 
                                      value_t lambda,
-                                     Loss *loss_function, 
-                                     Dataset *data);
+                                     const Loss *loss_function, 
+                                     const Dataset *data);
+
+      void update_phi(value_t alpha, value_t theta_scale);
+      value_t compute_alpha(const Dataset* data, value_t lambda, value_t theta_scale);
+      value_t priority_norm_j(index_t j, const Dataset* data);
 
     public:
       Solver() {
@@ -53,7 +60,7 @@ namespace BlitzL1 {
       void set_verbose(bool val) { verbose = val; }
       bool get_verbose() { return verbose; }
 
-      void solve(Dataset *data,
+      void solve(const Dataset *data,
                  value_t lambda,
                  const char *loss_type,
                  value_t *x,

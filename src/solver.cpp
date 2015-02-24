@@ -6,19 +6,21 @@
 #include <cstring>
 #include <stdio.h>
 #include <iostream>
+#include <algorithm>
 
 using namespace BlitzL1;
 
 using std::vector;
 using std::cout;
 using std::endl;
+using std::min;
 
 const int MAX_BACKTRACK = 20;
 const value_t L_INCREASE_RATIO = 1.25;
 
 void Solver::update_intercept(value_t &intercept, 
-                              Loss *loss_function,
-                              Dataset *data) {
+                              const Loss *loss_function,
+                              const Dataset *data) {
   if (!use_intercept)
     return;
 
@@ -70,24 +72,24 @@ value_t Solver::compute_lambda_max(Dataset *data, const char* loss_type) {
 void Solver::run_prox_newton_iteration(value_t *x, 
                                        value_t &intercept, 
                                        value_t lambda,
-                                       Loss *loss_function, 
-                                       Dataset *data) {
+                                       const Loss *loss_function, 
+                                       const Dataset *data) {
 
   // Initialize iteration:
   index_t n = data->get_n();
-  index_t d = data->get_d();
-  vector<value_t> Delta_x(d, 0.0);
+  vector<value_t> Delta_x(working_set_size, 0.0);
   vector<value_t> A_Delta_x(n, 0.0);
   value_t Delta_intercept = 0.0;
 
   // Set up gradient and hessian values:
   vector<value_t> H;
   loss_function->compute_H(H, theta, aux_dual, data);
-  vector<value_t> grad_cache(d, 0.0);
-  vector<value_t> hess_cache(d, 0.0);
-  for (index_t j = 0; j < d; ++j) {
-    grad_cache[j] = data->get_column(j)->inner_product(theta);
-    hess_cache[j] = data->get_column(j)->h_norm_sq(H);
+  vector<value_t> grad_cache(working_set_size, 0.0);
+  vector<value_t> hess_cache(working_set_size, 0.0);
+  for (index_t ind = 0; ind < working_set_size; ++ind) {
+    index_t j = prioritized_features[ind];
+    grad_cache[ind] = data->get_column(j)->inner_product(theta);
+    hess_cache[ind] = data->get_column(j)->h_norm_sq(H);
   }
 
   // Cache values for updating intercept:
@@ -97,19 +99,20 @@ void Solver::run_prox_newton_iteration(value_t *x,
   // Approximately solve for newton direction:
   for (int cd_itr = 0; cd_itr < 10; ++cd_itr) {
 
-    for (index_t j = 0; j < d; ++j) {
+    for (index_t ind = 0; ind < working_set_size; ++ind) {
+      index_t j = prioritized_features[ind];
       const Column *col = data->get_column(j);
 
       // Compute hessian and gradient for coordinate j:
-      value_t hess = hess_cache[j];
+      value_t hess = hess_cache[ind];
       if (hess == 0.0)
         continue;
 
-      value_t grad = grad_cache[j] 
+      value_t grad = grad_cache[ind] 
                    + col->weighted_inner_product(A_Delta_x, H);
 
       // Apply coordinate descent update:
-      value_t old_value = x[j] + Delta_x[j]; 
+      value_t old_value = x[j] + Delta_x[ind]; 
       value_t proposal = old_value - grad / hess;
       value_t new_value = soft_threshold(proposal, lambda / hess);
       value_t diff = new_value - old_value;
@@ -117,7 +120,7 @@ void Solver::run_prox_newton_iteration(value_t *x,
       if (diff == 0.0)
         continue;
       
-      Delta_x[j] = new_value - x[j];
+      Delta_x[ind] = new_value - x[j];
       col->add_multiple(A_Delta_x, diff);
     }
 
@@ -131,14 +134,71 @@ void Solver::run_prox_newton_iteration(value_t *x,
   }
 
   // Apply update:
-  for (index_t j = 0; j < d; ++j)
-    x[j] += Delta_x[j];
+  for (index_t ind = 0; ind < working_set_size; ++ind) {
+    index_t j = prioritized_features[ind];
+    x[j] += Delta_x[ind];
+  }
   intercept += Delta_intercept;
   loss_function->compute_dual_points(
                     theta, aux_dual, x, intercept, data);
 }
 
-void Solver::solve(Dataset *data,
+value_t Solver::priority_norm_j(index_t j, const Dataset* data) {
+  if (use_intercept)
+    return data->get_column(j)->l2_norm_centered();
+  else
+    return data->get_column(j)->l2_norm();
+}
+
+value_t Solver::compute_alpha(const Dataset* data, value_t lambda, value_t theta_scale) {
+  value_t best_alpha = 1.0;
+  index_t d = data->get_d();
+  for (index_t j = 0; j < d; ++j) {
+    value_t norm = priority_norm_j(j, data);
+    if (norm <= 0.0)
+      continue;
+
+    value_t l = ATphi[j];
+    value_t r = theta_scale * ATtheta[j];
+    if (std::abs(r) <= lambda)
+      continue;
+
+    value_t alpha;
+    if (r >= 0)
+      alpha = (lambda - l)/(r - l);
+    else
+      alpha = (-lambda - l)/(r - l);
+
+    if (alpha < best_alpha)
+      best_alpha = alpha;
+  }
+  return best_alpha;
+}
+
+void Solver::update_phi(value_t alpha, value_t theta_scale) {
+  for (size_t j = 0; j < ATphi.size(); ++j) 
+    ATphi[j] = (1 - alpha) * ATphi[j] + alpha * theta_scale * ATtheta[j];
+  for (size_t i = 0; i < phi.size(); ++i)
+    phi[i] = (1 - alpha) * phi[i] + alpha * theta_scale * theta[i];
+}
+
+void Solver::prioritize_features(const Dataset *data, value_t lambda) {
+  index_t d = data->get_d();
+  feature_priorities.resize(d);
+  for (index_t j = 0; j < d; ++j) {
+    value_t AjTphi = ATphi[j];
+    value_t norm = priority_norm_j(j, data);
+    value_t priority_value = (lambda - std::abs(AjTphi)) / norm;
+    feature_priorities[j] = priority_value;
+  }
+  IndirectComparator cmp(feature_priorities);
+  sort(
+    prioritized_features.begin(),
+    prioritized_features.end(),
+    cmp);
+}
+
+void Solver::solve(const Dataset *data,
                    value_t lambda,
                    const char *loss_type,
                    value_t* x,
@@ -152,31 +212,64 @@ void Solver::solve(Dataset *data,
   Timer timer;
   Logger logger(log_directory);
 
+  num_iterations = 0;
   Loss* loss_function = get_loss_function(loss_type);
+  index_t n = data->get_n();
+  index_t d = data->get_d();
+  working_set_size = 0;
+  prioritized_features.resize(d);
+  for (index_t j = 0; j < d; ++j)
+    prioritized_features[j] = j;
+
+  // Initialize dual points:
   loss_function->compute_dual_points(
                     theta, aux_dual, x, intercept, data);
+  phi.assign(n, 0.0);
+  ATphi.assign(d, 0.0);
+  ATtheta.assign(d, 0.0);
 
-  num_iterations = 0;
-  index_t d = data->get_d();
+  // Initialize objective values:
   value_t primal_loss = loss_function->primal_loss(theta, aux_dual);
   primal_obj = primal_loss + lambda * l1_norm(x, d);
 
-  while (true) {
-    num_iterations++;
+  // Main Blitz loop:
+  while (++num_iterations) {
     value_t primal_obj_last = primal_obj;
 
+    // Update intercept:
     update_intercept(intercept, loss_function, data);
 
-    vector<value_t> loss_gradients;
-    loss_gradients.assign(d, 0.0);
+    // Update ATtheta:
     for (index_t j = 0; j < d; ++j) {
-      loss_gradients[j] = data->get_column(j)->inner_product(theta);
+      ATtheta[j] = data->get_column(j)->inner_product(theta);
     }
 
-    value_t max_loss_gradient = max_abs(loss_gradients);
-    vector<value_t> omega(theta);
-    scale_vector(omega, lambda / max_loss_gradient);
-    value_t dual_obj = loss_function->dual_obj(omega, data);
+    // Compute theta scale:
+    value_t max_grad_working_set = 0.0;
+    for (index_t ind = 0; ind < working_set_size; ++ind) {
+      index_t j = prioritized_features[ind]; 
+      value_t AjTtheta = data->get_column(j)->inner_product(theta);
+      if (std::abs(AjTtheta) > max_grad_working_set)
+        max_grad_working_set = std::abs(AjTtheta);
+    }
+    value_t theta_scale = 1.0;
+    if (max_grad_working_set > lambda)
+      theta_scale = lambda / max_grad_working_set;
+
+    // Update phi:
+    value_t alpha = compute_alpha(data, lambda, theta_scale);
+    update_phi(alpha, theta_scale);
+    value_t dual_obj = loss_function->dual_obj(phi, data);
+
+    // Prioritize features:
+    prioritize_features(data, lambda);
+
+    // Determine working set size:
+    working_set_size = 2 * l0_norm(x, d);
+    if (working_set_size < 100)
+      working_set_size = 100;
+    if (working_set_size > d)
+      working_set_size = d;
   
     // Solve subproblem:
     for (int prox_newt_itr = 0; prox_newt_itr < 5; prox_newt_itr++){
@@ -194,6 +287,8 @@ void Solver::solve(Dataset *data,
     if (verbose)
       cout << "Time: " << elapsed_time
            << " Objective: " << primal_obj 
+           << " alpha: " << alpha 
+           << " |C|: " << working_set_size
            << " Duality gap: " << duality_gap << endl;
 
     logger.log_point(elapsed_time, primal_obj);

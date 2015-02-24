@@ -108,4 +108,19 @@ namespace BlitzL1 {
   value_t max_abs(const std::vector<value_t> &vec);
   value_t soft_threshold(value_t value, value_t threshold);
   void scale_vector(std::vector<value_t> &vec, value_t scale);
+  void copy_and_scale_vector(const std::vector<value_t> &values, 
+                             value_t scale,
+                             std::vector<value_t> &target);
+
+  class IndirectComparator {
+    const std::vector<value_t>& values;
+    IndirectComparator();
+
+    public:
+      IndirectComparator(const std::vector<value_t> &v) : values(v) {}
+      bool operator() (const index_t &i, const index_t &j) {
+        return values[i] < values[j];
+      }
+  };
+
 }

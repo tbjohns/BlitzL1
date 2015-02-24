@@ -8,9 +8,6 @@ do
 done
 for file in ${DIR}/python/*
 do
-  if [[ ! -d $file && -x $file ]]
-    then
-    python -W ignore $file
-  fi
+  python -W ignore $file
 done
 echo "Done."

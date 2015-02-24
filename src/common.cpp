@@ -234,4 +234,10 @@ namespace BlitzL1 {
       vec[ind] *= scale;
   }
 
+  void copy_and_scale_vector(const std::vector<value_t> &values, 
+                             value_t scale,
+                             std::vector<value_t> &target) {
+    target = values;
+    scale_vector(target, scale);
+  }
 }

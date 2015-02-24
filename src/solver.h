@@ -14,8 +14,9 @@ namespace BlitzL1 {
       std::vector<value_t> ATphi;
       std::vector<value_t> aux_dual;
 
+      index_t working_set_size;
       std::vector<index_t> prioritized_features;
-      std::vector<index_t> feature_priorities;
+      std::vector<value_t> feature_priorities;
 
       value_t tolerance;
       bool verbose;
@@ -26,6 +27,8 @@ namespace BlitzL1 {
       void update_intercept(value_t &intercept, 
                             const Loss *loss_function,
                             const Dataset *data);
+
+      void prioritize_features(const Dataset *data, value_t lambda);
 
       void run_prox_newton_iteration(value_t *x, 
                                      value_t &intercept, 

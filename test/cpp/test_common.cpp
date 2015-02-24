@@ -176,6 +176,11 @@ void test_Math() {
   if (scale_vec[9] != 3.0)
     cerr << "Test Math scale vector failed" << endl;
 
+  scale_vec[9] = 10.0;
+  copy_and_scale_vector(vec, 0.25, scale_vec);
+  if (scale_vec[9] != 3.0)
+    cerr << "Test Math copy_and_scale_vector failed" << endl;
+
 
   vector<value_t> vec2;
   vec2.assign(10, 1.0);

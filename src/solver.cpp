@@ -15,9 +15,6 @@ using std::cout;
 using std::endl;
 using std::min;
 
-const int MAX_BACKTRACK = 20;
-const value_t L_INCREASE_RATIO = 1.25;
-
 void Solver::update_intercept(value_t &intercept, 
                               const Loss *loss_function,
                               const Dataset *data) {

@@ -28,7 +28,7 @@ namespace BlitzL1 {
                             const Loss *loss_function,
                             const Dataset *data);
 
-      void prioritize_features(const Dataset *data, value_t lambda);
+      void prioritize_features(const Dataset *data, value_t lambda, const value_t *x);
 
       void run_prox_newton_iteration(value_t *x, 
                                      value_t &intercept, 
@@ -36,6 +36,7 @@ namespace BlitzL1 {
                                      const Loss *loss_function, 
                                      const Dataset *data);
 
+      void update_ATtheta(const Dataset *data);
       void update_phi(value_t alpha, value_t theta_scale);
       value_t compute_alpha(const Dataset* data, value_t lambda, value_t theta_scale);
       value_t priority_norm_j(index_t j, const Dataset* data);
@@ -71,7 +72,7 @@ namespace BlitzL1 {
                  int &num_iterations,
                  const char* log_directory);
 
-      value_t compute_lambda_max(Dataset *data, const char* loss_type);
+      value_t compute_lambda_max(const Dataset *data, const char* loss_type);
   };
 
 }

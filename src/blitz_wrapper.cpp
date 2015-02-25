@@ -27,7 +27,7 @@ extern "C" {
     delete data;
   }
 
-  value_t BlitzL1_compute_lambda_max(Solver *solver, Dataset* data, char* loss_type) {
+  value_t BlitzL1_compute_lambda_max(Solver *solver, const Dataset* data, char* loss_type) {
     return solver->compute_lambda_max(data, loss_type);
   }
 

@@ -1,8 +1,13 @@
 #include "loss.h"
 #include <math.h>
+#include <limits>
 
 using std::vector;
 using std::abs;
+
+#include <iostream>
+using std::endl;
+using std::cout;
 
 using namespace BlitzL1;
 
@@ -48,7 +53,17 @@ void LogisticLoss::compute_dual_points(
   for (index_t i = 0; i < n; ++i) {
     value_t minus_label = -data->get_label(i);
     aux_dual[i] = exp(minus_label * theta[i]);
-    theta[i] = minus_label * aux_dual[i] / (1 + aux_dual[i]);
+    if (aux_dual[i] == std::numeric_limits<value_t>::infinity()) {
+      cout << minus_label << endl;
+      cout << theta[i] << endl;
+    }
+    theta[i] = minus_label * aux_dual[i] / (1.0 + aux_dual[i]);
+    if (theta[i] != theta[i]) {
+      cout << "died at " << i << endl;
+      cout << "aux dual is " << aux_dual[i] << endl;
+      cout << "label is " << minus_label << endl;
+      throw i;
+    }
     // theta[i] is now dual point
   }
 }
@@ -74,7 +89,10 @@ void LogisticLoss::apply_intercept_update(
   for (index_t i = 0; i < n; ++i) {
     value_t minus_label = -data->get_label(i);
     aux_dual[i] *= exp(minus_label * delta);
-    theta[i] = minus_label * aux_dual[i] / (1 + aux_dual[i]);
+    if (aux_dual[i] == std::numeric_limits<value_t>::infinity())
+      theta[i] = minus_label;
+    else
+      theta[i] = minus_label * aux_dual[i] / (1.0 + aux_dual[i]);
   }
 }
 

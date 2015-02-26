@@ -1,0 +1,43 @@
+2015-02-26 02:17:04
+
+rcv1 logistic 0.1: 0.49450
+rcv1 logistic 0.05: 0.52619
+rcv1 logistic 0.01: 1.71460
+rcv1 logistic 0.005: 2.90008
+rcv1 logistic 0.03 intercept=false: 0.83193
+rcv1 logistic 0.01 initial=0.05: 1.51658
+rcv1 squared 0.01: 2.20232
+realsim logistic 0.1: 0.77594
+realsim logistic 0.05: 1.23739
+realsim logistic 0.01: 3.55372
+realsim logistic 0.005: 5.14158
+realsim logistic 0.1 intercept=false: 0.80468
+realsim logistic 0.02 initial=0.04: 1.12390
+realsim squared 0.05: 2.34153
+gisette logistic 0.1: 0.71134
+gisette logistic 0.05: 1.27278
+gisette logistic 0.01: 7.96529
+gisette logistic 0.001: 188.02561
+gisette logistic 0.01 intercept=false: 7.54721
+gisette logistic 0.1 initial=0.2: 0.54518
+gisette squared 0.05: 1.42703
+news20 squared 0.1: 2.36393
+news20 logistic 0.1: 2.40951
+news20 logistic 0.05: 4.85149
+news20 logistic 0.01: 7.28834
+news20 logistic 0.001: 51.65989
+news20 logistic 0.05 intercept=false: 3.16320
+news20 logistic 0.01 tolerance=0: 14.13016
+news20 logistic 0.01 initial=0.05: 10.16634
+finance squared 0.1: 0.45991
+finance squared 0.05: 0.45820
+finance squared 0.01: 0.51465
+finance squared 0.005: 0.57850
+finance squared 0.05 intercept=false: 0.30310
+finance squared 0.01 initial=0.05: 0.29900
+
+
+Total time: 331.30560
+Average time: 9.46587
+log10-adjusted average: 0.29875
+

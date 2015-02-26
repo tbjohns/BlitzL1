@@ -8,16 +8,26 @@ using std::endl;
 
 namespace BlitzL1 {
 
-  value_t Column::l2_norm_centered() const {
-    value_t value_sq = l2_norm_sq() - mean() * mean() * length;
-    if (value_sq <= 0)
-      return 0;
-    else
-      return sqrt(value_sq);
+  value_t Column::l2_norm() const {
+    if (l2_norm_cache == -1.0)
+      l2_norm_cache = sqrt(l2_norm_sq());
+    return l2_norm_cache;
   }
 
+  value_t Column::l2_norm_centered() const {
+    if (l2_norm_centered_cache == -1.0) {
+      value_t mean_value = this->mean();
+      value_t value_sq = l2_norm_sq() - mean_value * mean_value * length;
+      if (value_sq <= 0)
+        l2_norm_centered_cache = 0.0;
+      else
+        l2_norm_centered_cache = sqrt(value_sq);
+    }
+    return l2_norm_centered_cache;
+  };
+
   SparseColumnFromPointers::SparseColumnFromPointers(
-      index_t *indices, value_t *values, index_t nnz, index_t length) {
+      index_t *indices, value_t *values, index_t nnz, index_t length) : Column() {
     this->indices = indices;
     this->values = values;
     this->nnz = nnz;
@@ -69,7 +79,7 @@ namespace BlitzL1 {
 
   
   DenseColumnFromPointers::DenseColumnFromPointers(
-          value_t *values, index_t length) {
+          value_t *values, index_t length) : Column() {
     this->values = values;
     this->nnz = length;
     this->length = length;

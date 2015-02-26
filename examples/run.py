@@ -1,3 +1,8 @@
+import sys
+import os
+pwd = os.path.abspath(os.path.dirname(__file__))
+sys.path.append(os.path.join(pwd, ".."))
+
 from scipy import sparse
 import numpy as np
 from sklearn.datasets import load_svmlight_file
@@ -12,9 +17,12 @@ def format_b(b):
   scale = 2.00 / (max_b - min_b)
   return scale * (b - max_b) + 1.0
 
-(A, b) = load_svmlight_file("benchmark/data/news20")
+(A, b) = load_svmlight_file(os.path.join(pwd, "../benchmark/data/news20"))
 A_csc = sparse.csc_matrix(A)
 b = format_b(b)
+
+from IPython import embed
+embed()
 
 prob = blitzl1.LogRegProblem(A_csc, b)
 

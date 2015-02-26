@@ -14,8 +14,11 @@ namespace BlitzL1 {
     protected:
       index_t length;
       index_t nnz;
+      mutable value_t l2_norm_cache;
+      mutable value_t l2_norm_centered_cache;
     
     public:
+      Column() : l2_norm_cache(-1.0), l2_norm_centered_cache(-1.0) {}
       index_t get_length() const { return length; }
       index_t get_nnz() const { return nnz; } 
       virtual value_t inner_product(const std::vector<value_t> &vec) const = 0;
@@ -25,7 +28,7 @@ namespace BlitzL1 {
                                 value_t scaler) const = 0;
       virtual value_t mean() const = 0;
       virtual value_t l2_norm_sq() const = 0;
-      value_t l2_norm() const { return sqrt(l2_norm_sq()); }
+      value_t l2_norm() const;
       value_t l2_norm_centered() const;
   };
 

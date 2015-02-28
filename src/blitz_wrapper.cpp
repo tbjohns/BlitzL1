@@ -6,20 +6,20 @@ using namespace BlitzL1;
 extern "C" {
 
   Dataset* BlitzL1_new_sparse_dataset(index_t *indices,
-                                      nnz_t *indptr,
+                                      index_t *indptr,
                                       value_t *data,
                                       value_t *labels,
-                                      index_t n,
-                                      index_t d,
-                                      nnz_t nnz) {
+                                      size_t n,
+                                      size_t d,
+                                      size_t nnz) {
     return new DatasetFromCSCPointers(
                   indices, indptr, data, labels, n, d, nnz);
   }
 
   Dataset* BlitzL1_new_dense_dataset(value_t *data,
                                      value_t *labels,
-                                     index_t n,
-                                     index_t d) {
+                                     size_t n,
+                                     size_t d) {
     return new DatasetFromFContiguousPointer(data, labels, n, d);
   }
 

@@ -15,6 +15,7 @@ using std::vector;
 using std::cout;
 using std::endl;
 using std::min;
+using std::swap;
 
 const int MAX_BACKTRACK_ITR = 20;
 
@@ -51,12 +52,15 @@ Loss* get_loss_function(const char* loss_type) {
 value_t Solver::compute_lambda_max(const Dataset *data, const char* loss_type) {
 
   Loss* loss_function = get_loss_function(loss_type);    
-  index_t d = data->get_d();
+  size_t d = data->get_d();
   vector<value_t> x(d, 0.0);
   value_t intercept = 0.0;
   loss_function->compute_dual_points(
                     theta, aux_dual, &x[0], intercept, data);
   update_intercept(intercept, loss_function, data);
+  prioritized_features.resize(d);
+  for (size_t j = 0; j < d; ++j)
+    prioritized_features[j] = j;
   update_ATtheta(data);
   return max_abs(ATtheta);
 }
@@ -68,18 +72,29 @@ void Solver::run_prox_newton_iteration(value_t *x,
                                        const Dataset *data) {
 
   // Initialize iteration:
-  index_t n = data->get_n();
+  size_t n = data->get_n();
   vector<value_t> Delta_x(working_set_size, 0.0);
   vector<value_t> A_Delta_x(n, 0.0);
   value_t Delta_intercept = 0.0;
+
+  /*
+  random_shuffle(prioritized_features.begin(), 
+                 prioritized_features.begin() + working_set_size);
+  */
+  /*
+  vector<size_t> rand_permutation;
+  rand_permutation.reserve(working_set_size);
+  for (size_t ind = 0; ind < working_set_size; ++ind)
+    rand_permutation.push_back(ind);
+    */
 
   // Set up gradient and hessian values:
   vector<value_t> H;
   loss_function->compute_H(H, theta, aux_dual, data);
   vector<value_t> grad_cache(working_set_size, 0.0);
   vector<value_t> hess_cache(working_set_size, 0.0);
-  for (index_t ind = 0; ind < working_set_size; ++ind) {
-    index_t j = prioritized_features[ind];
+  for (size_t ind = 0; ind < working_set_size; ++ind) {
+    size_t j = prioritized_features[ind];
     grad_cache[ind] = data->get_column(j)->inner_product(theta);
     hess_cache[ind] = data->get_column(j)->h_norm_sq(H);
   }
@@ -91,8 +106,19 @@ void Solver::run_prox_newton_iteration(value_t *x,
   // Approximately solve for newton direction:
   for (int cd_itr = 0; cd_itr < 10; ++cd_itr) {
 
-    for (index_t ind = 0; ind < working_set_size; ++ind) {
-      index_t j = prioritized_features[ind];
+    /*
+    random_shuffle(rand_permutation.begin(), rand_permutation.end());
+    for (size_t rp_ind = 0; rp_ind < working_set_size; ++rp_ind) {
+      size_t new_index = rand_permutation[rp_ind];
+      swap(prioritized_features[rp_ind], prioritized_features[new_index]);  
+      swap(Delta_x[rp_ind], Delta_x[new_index]);
+      swap(grad_cache[rp_ind], grad_cache[new_index]);
+      swap(hess_cache[rp_ind], hess_cache[new_index]);
+    }
+    */
+
+    for (size_t ind = 0; ind < working_set_size; ++ind) {
+      size_t j = prioritized_features[ind];
       const Column *col = data->get_column(j);
 
       // Compute hessian and gradient for coordinate j:
@@ -134,8 +160,8 @@ void Solver::run_prox_newton_iteration(value_t *x,
     intercept += diff_t * Delta_intercept;
     value_t subgrad_t = 0.0;
 
-    for (index_t ind = 0; ind < working_set_size; ++ind) {
-      index_t j = prioritized_features[ind];
+    for (size_t ind = 0; ind < working_set_size; ++ind) {
+      size_t j = prioritized_features[ind];
       x[j] += diff_t * Delta_x[ind];
       if (x[j] < 0)
         subgrad_t -= lambda * Delta_x[ind];
@@ -157,7 +183,7 @@ void Solver::run_prox_newton_iteration(value_t *x,
   }
 }
 
-value_t Solver::priority_norm_j(index_t j, const Dataset* data) {
+value_t Solver::priority_norm_j(size_t j, const Dataset* data) {
   if (use_intercept)
     return data->get_column(j)->l2_norm_centered();
   else
@@ -166,14 +192,16 @@ value_t Solver::priority_norm_j(index_t j, const Dataset* data) {
 
 value_t Solver::compute_alpha(const Dataset* data, value_t lambda, value_t theta_scale) {
   value_t best_alpha = 1.0;
-  index_t d = data->get_d();
-  for (index_t j = 0; j < d; ++j) {
-    value_t norm = priority_norm_j(j, data);
+  for (vector<size_t>::iterator j = prioritized_features.begin();
+       j != prioritized_features.end();
+       ++j) {
+
+    value_t norm = priority_norm_j(*j, data);
     if (norm <= 0.0)
       continue;
 
-    value_t l = ATphi[j];
-    value_t r = theta_scale * ATtheta[j];
+    value_t l = ATphi[*j];
+    value_t r = theta_scale * ATtheta[*j];
     if (std::abs(r) <= lambda)
       continue;
 
@@ -190,38 +218,50 @@ value_t Solver::compute_alpha(const Dataset* data, value_t lambda, value_t theta
 }
 
 void Solver::update_ATtheta(const Dataset *data) {
-  index_t d = data->get_d();
+  size_t d = data->get_d();
   ATtheta.resize(d);
-  for (index_t j = 0; j < d; ++j) {
-    ATtheta[j] = data->get_column(j)->inner_product(theta);
+  for (vector<size_t>::iterator j = prioritized_features.begin();
+       j != prioritized_features.end();
+       ++j) {
+    ATtheta[*j] = data->get_column(*j)->inner_product(theta);
   }
 }
 
 void Solver::update_phi(value_t alpha, value_t theta_scale) {
-  for (size_t j = 0; j < ATphi.size(); ++j) 
-    ATphi[j] = (1 - alpha) * ATphi[j] + alpha * theta_scale * ATtheta[j];
+  for (vector<size_t>::iterator j = prioritized_features.begin();
+       j != prioritized_features.end();
+       ++j) {
+    ATphi[*j] = (1 - alpha) * ATphi[*j] + alpha * theta_scale * ATtheta[*j];
+  }
   for (size_t i = 0; i < phi.size(); ++i)
     phi[i] = (1 - alpha) * phi[i] + alpha * theta_scale * theta[i];
 }
 
-void Solver::prioritize_features(const Dataset *data, value_t lambda, const value_t *x) {
-  index_t d = data->get_d();
+void Solver::prioritize_features(const Dataset *data, value_t lambda, const value_t *x, size_t max_size_C) {
+  size_t d = data->get_d();
   feature_priorities.resize(d);
-  for (index_t j = 0; j < d; ++j) {
-    if (x[j] != 0) {
-      feature_priorities[j] = 0.0;
+  for (vector<size_t>::iterator j = prioritized_features.begin();
+       j != prioritized_features.end();
+       ++j) {
+    if (x[*j] != 0) {
+      feature_priorities[*j] = 0.0;
     } else {
-      value_t AjTphi = ATphi[j];
-      value_t norm = priority_norm_j(j, data);
+      value_t AjTphi = ATphi[*j];
+      value_t norm = priority_norm_j(*j, data);
       if (norm <= 0) {
-        feature_priorities[j] = std::numeric_limits<value_t>::max();
+        feature_priorities[*j] = std::numeric_limits<value_t>::max();
       } else {
         value_t priority_value = (lambda - std::abs(AjTphi)) / norm;
-        feature_priorities[j] = priority_value;
+        feature_priorities[*j] = priority_value;
       }
     }
   }
   IndirectComparator cmp(feature_priorities);
+  nth_element(
+    prioritized_features.begin(),
+    prioritized_features.begin() + max_size_C,
+    prioritized_features.end(),
+    cmp);
   sort(
     prioritized_features.begin(),
     prioritized_features.end(),
@@ -244,11 +284,11 @@ void Solver::solve(const Dataset *data,
 
   num_iterations = 0;
   Loss* loss_function = get_loss_function(loss_type);
-  index_t n = data->get_n();
-  index_t d = data->get_d();
+  size_t n = data->get_n();
+  size_t d = data->get_d();
   working_set_size = 0;
   prioritized_features.resize(d);
-  for (index_t j = 0; j < d; ++j)
+  for (size_t j = 0; j < d; ++j)
     prioritized_features[j] = j;
 
   // Initialize dual points:
@@ -272,8 +312,8 @@ void Solver::solve(const Dataset *data,
 
     // Compute theta scale:
     value_t max_grad_working_set = 0.0;
-    for (index_t ind = 0; ind < working_set_size; ++ind) {
-      index_t j = prioritized_features[ind]; 
+    for (size_t ind = 0; ind < working_set_size; ++ind) {
+      size_t j = prioritized_features[ind]; 
       value_t AjTtheta = ATtheta[j];
       if (std::abs(AjTtheta) > max_grad_working_set)
         max_grad_working_set = std::abs(AjTtheta);
@@ -286,15 +326,28 @@ void Solver::solve(const Dataset *data,
     update_phi(alpha, theta_scale);
 
     value_t dual_obj = loss_function->dual_obj(phi, data);
-
-    prioritize_features(data, lambda, x);
+    duality_gap = primal_obj - dual_obj;
 
     // Determine working set size:
     working_set_size = 2 * l0_norm(x, d);
     if (working_set_size < 100)
       working_set_size = 100;
-    if (working_set_size > d)
-      working_set_size = d;
+    if (working_set_size > prioritized_features.size())
+      working_set_size = prioritized_features.size();
+
+    prioritize_features(data, lambda, x, working_set_size);
+
+    // Eliminate features:
+    value_t thresh = sqrt(2 * duality_gap / loss_function->L);
+    IndirectExceedsThreshold exceeds_thresh(feature_priorities, thresh);
+    prioritized_features.erase(
+      remove_if(prioritized_features.begin(), 
+                prioritized_features.end(),
+                exceeds_thresh),
+      prioritized_features.end()
+    );
+    if (working_set_size > prioritized_features.size())
+      working_set_size = prioritized_features.size();
   
     // Solve subproblem:
     for (int prox_newt_itr = 0; prox_newt_itr < 5; prox_newt_itr++){
@@ -312,7 +365,8 @@ void Solver::solve(const Dataset *data,
     if (verbose)
       cout << "Time: " << elapsed_time
            << " Objective: " << primal_obj 
-           << " Duality gap: " << duality_gap << endl;
+           << " Duality gap: " << duality_gap 
+           << " Features left: " << prioritized_features.size() << endl;
 
     logger.log_point(elapsed_time, primal_obj);
     timer.continue_timing();

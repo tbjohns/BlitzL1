@@ -99,7 +99,7 @@ void test_DenseColumnFromPointers() {
 }
 
 void test_DatasetFromCSCPointers() {
-  nnz_t indptr[6] = {0, 1, 2, 4, 6, 7};
+  index_t indptr[6] = {0, 1, 2, 4, 6, 7};
   index_t indices[7] = {1, 0, 1, 2, 1, 2, 0};
   value_t values[7] = {-2, 1, 3, 1, 1, 2, 1};
   value_t labels[3] = {-1, 0.5, 1.5};

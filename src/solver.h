@@ -14,8 +14,8 @@ namespace BlitzL1 {
       std::vector<value_t> ATphi;
       std::vector<value_t> aux_dual;
 
-      index_t working_set_size;
-      std::vector<index_t> prioritized_features;
+      size_t working_set_size;
+      std::vector<size_t> prioritized_features;
       std::vector<value_t> feature_priorities;
 
       value_t tolerance;
@@ -28,7 +28,7 @@ namespace BlitzL1 {
                             const Loss *loss_function,
                             const Dataset *data);
 
-      void prioritize_features(const Dataset *data, value_t lambda, const value_t *x);
+      void prioritize_features(const Dataset *data, value_t lambda, const value_t *x, size_t max_size_C);
 
       void run_prox_newton_iteration(value_t *x, 
                                      value_t &intercept, 
@@ -39,7 +39,7 @@ namespace BlitzL1 {
       void update_ATtheta(const Dataset *data);
       void update_phi(value_t alpha, value_t theta_scale);
       value_t compute_alpha(const Dataset* data, value_t lambda, value_t theta_scale);
-      value_t priority_norm_j(index_t j, const Dataset* data);
+      value_t priority_norm_j(size_t j, const Dataset* data);
 
     public:
       Solver() {

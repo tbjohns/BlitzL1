@@ -7,13 +7,12 @@ namespace BlitzL1 {
 
   typedef double value_t; 
   typedef int index_t;
-  typedef int nnz_t;
   typedef std::size_t size_t;
 
   class Column {
     protected:
-      index_t length;
-      index_t nnz;
+      size_t length;
+      size_t nnz;
       mutable value_t l2_norm_cache;
       mutable value_t l2_norm_centered_cache;
     
@@ -39,8 +38,8 @@ namespace BlitzL1 {
     public:
       SparseColumnFromPointers(index_t *indices, 
                          value_t *values,
-                         index_t nnz,
-                         index_t length);
+                         size_t nnz,
+                         size_t length);
       value_t inner_product(const std::vector<value_t> &vec) const;
       value_t weighted_inner_product(const std::vector<value_t> &vec, const std::vector<value_t> &weights) const;
       void add_multiple(std::vector<value_t> &target, 
@@ -67,44 +66,44 @@ namespace BlitzL1 {
   class Dataset {
     protected:
       std::vector<Column*> columns_vec;
-      index_t n;   // # training examples
-      index_t d;   // # features
-      index_t nnz; // # nonzero entries
+      size_t n;   // # training examples
+      size_t d;   // # features
+      size_t nnz; // # nonzero entries
       value_t* labels;
 
     public:
       const Column* get_column(index_t j) const { return columns_vec[j]; }
       value_t get_label(index_t i) const;
-      index_t get_nnz() const { return nnz; }
-      index_t get_n() const { return n; }
-      index_t get_d() const { return d; }
+      size_t get_nnz() const { return nnz; }
+      size_t get_n() const { return n; }
+      size_t get_d() const { return d; }
   };
 
   class DatasetFromCSCPointers : public Dataset {
     public:
       DatasetFromCSCPointers(index_t *indices,
-                          nnz_t *indptr,
+                          index_t *indptr,
                           value_t *data,
                           value_t *labels,
-                          index_t n,
-                          index_t d,
-                          nnz_t nnz);
+                          size_t n,
+                          size_t d,
+                          size_t nnz);
   };
 
   class DatasetFromFContiguousPointer : public Dataset {
     public:
       DatasetFromFContiguousPointer(value_t *data, 
                                     value_t *labels, 
-                                    index_t n, 
-                                    index_t d);
+                                    size_t n, 
+                                    size_t d);
   };
 
   value_t l2_norm_sq(const std::vector<value_t> &vec);
-  value_t l2_norm_sq(const value_t *values, index_t length);
-  value_t l1_norm(value_t *x, index_t d);
-  index_t l0_norm(value_t *x, index_t d);
+  value_t l2_norm_sq(const value_t *values, size_t length);
+  value_t l1_norm(value_t *x, size_t d);
+  size_t l0_norm(value_t *x, size_t d);
   value_t sum_vector(const std::vector<value_t> &vec);
-  value_t sum_array(const value_t *values, index_t length);
+  value_t sum_array(const value_t *values, size_t length);
   void add_scaler(std::vector<value_t> &vec, value_t scaler);
   value_t inner_product(const std::vector<value_t> &vec1, 
                         const std::vector<value_t> &vec2);
@@ -123,6 +122,19 @@ namespace BlitzL1 {
       IndirectComparator(const std::vector<value_t> &v) : values(v) {}
       bool operator() (const index_t &i, const index_t &j) {
         return values[i] < values[j];
+      }
+  };
+
+  class IndirectExceedsThreshold {
+    const std::vector<value_t>& values;
+    value_t threshold;
+    IndirectExceedsThreshold();
+
+    public:
+      IndirectExceedsThreshold(const std::vector<value_t> &v, value_t t) 
+        : values(v), threshold(t) {}
+      bool operator() (const size_t &j) {
+        return (values[j] > threshold);
       }
   };
 

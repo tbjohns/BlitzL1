@@ -27,7 +27,7 @@ namespace BlitzL1 {
   };
 
   SparseColumnFromPointers::SparseColumnFromPointers(
-      index_t *indices, value_t *values, index_t nnz, index_t length) : Column() {
+      index_t *indices, value_t *values, size_t nnz, size_t length) : Column() {
     this->indices = indices;
     this->values = values;
     this->nnz = nnz;
@@ -36,7 +36,7 @@ namespace BlitzL1 {
 
   value_t SparseColumnFromPointers::inner_product(const vector<value_t> &vec) const {
     value_t result = 0.0;
-    for (index_t ind = 0; ind < nnz; ++ind) {
+    for (size_t ind = 0; ind < nnz; ++ind) {
       index_t i = indices[ind];
       result += values[ind] * vec[i];
     }
@@ -45,7 +45,7 @@ namespace BlitzL1 {
 
   value_t SparseColumnFromPointers::weighted_inner_product(const std::vector<value_t> &vec, const std::vector<value_t> &weights) const {
     value_t result = 0.0;
-    for (index_t ind = 0; ind < nnz; ++ind) {
+    for (size_t ind = 0; ind < nnz; ++ind) {
       index_t i = indices[ind];
       result += values[ind] * vec[i] * weights[i];
     }
@@ -53,7 +53,7 @@ namespace BlitzL1 {
   }
 
   void SparseColumnFromPointers::add_multiple(vector<value_t> &target, value_t scaler) const {
-    for (index_t ind = 0; ind < nnz; ++ind) {
+    for (size_t ind = 0; ind < nnz; ++ind) {
       index_t i = indices[ind];
       target[i] += values[ind] * scaler;
     }
@@ -61,7 +61,7 @@ namespace BlitzL1 {
 
   value_t SparseColumnFromPointers::h_norm_sq(const vector<value_t> &h_values) const {
     value_t result = 0.0;
-    for (index_t ind = 0; ind < nnz; ++ind) {
+    for (size_t ind = 0; ind < nnz; ++ind) {
       index_t i = indices[ind];
       result += values[ind] * values[ind] * h_values[i];
     }
@@ -87,26 +87,26 @@ namespace BlitzL1 {
 
   value_t DenseColumnFromPointers::inner_product(const vector<value_t> &vec) const {
     value_t result = 0.0;
-    for (index_t i = 0; i < length; ++i)
+    for (size_t i = 0; i < length; ++i)
       result += values[i] * vec[i];
     return result;
   }
 
   value_t DenseColumnFromPointers::weighted_inner_product(const std::vector<value_t> &vec, const std::vector<value_t> &weights) const {
     value_t result = 0.0;
-    for (index_t i = 0; i < length; ++i)
+    for (size_t i = 0; i < length; ++i)
       result += values[i] * vec[i] * weights[i];
     return result;
   }
 
   void DenseColumnFromPointers::add_multiple(vector<value_t> &target, value_t scaler) const {
-    for (index_t i = 0; i < length; ++i)
+    for (size_t i = 0; i < length; ++i)
       target[i] += values[i] * scaler;
   }
 
   value_t DenseColumnFromPointers::h_norm_sq(const vector<value_t> &h_values) const {
     value_t result = 0.0;
-    for (index_t i = 0; i < length; ++i)
+    for (size_t i = 0; i < length; ++i)
       result += values[i] * values[i] * h_values[i];
     return result;
   }
@@ -125,21 +125,21 @@ namespace BlitzL1 {
   }
 
   DatasetFromCSCPointers::DatasetFromCSCPointers(index_t *indices,
-                                           nnz_t *indptr,
+                                           index_t *indptr,
                                            value_t *data,
                                            value_t *labels,
-                                           index_t n,
-                                           index_t d,
-                                           nnz_t nnz) {
+                                           size_t n,
+                                           size_t d,
+                                           size_t nnz) {
     this->n = n;
     this->d = d;
     this->nnz = nnz;
     this->labels = labels;
     columns_vec.clear();
     columns_vec.reserve(d);
-    for (index_t j = 0; j < d; ++j) {
-      nnz_t offset = indptr[j];
-      index_t col_nnz = (index_t) (indptr[j+1] - offset);
+    for (size_t j = 0; j < this->d; ++j) {
+      index_t offset = indptr[j];
+      index_t col_nnz = (size_t) (indptr[j+1] - offset);
       value_t *col_data = data + offset;
       index_t *col_indices = indices + offset;
       Column *col = new SparseColumnFromPointers(col_indices, col_data, col_nnz, n);
@@ -148,14 +148,14 @@ namespace BlitzL1 {
   }
 
   DatasetFromFContiguousPointer::DatasetFromFContiguousPointer(
-        value_t *data, value_t *labels, index_t n, index_t d) {
+        value_t *data, value_t *labels, size_t n, size_t d) {
     this->n = n;
     this->d = d;
     this->nnz = n * d;
     this->labels = labels;
     columns_vec.clear();
     columns_vec.reserve(d);
-    for (index_t j = 0; j < d; ++j) {
+    for (size_t j = 0; j < d; ++j) {
       value_t *col_data = data + j * n; 
       Column *col = new DenseColumnFromPointers(col_data, n);
       columns_vec.push_back(col);
@@ -170,32 +170,34 @@ namespace BlitzL1 {
     return result;
   }
 
-  value_t l2_norm_sq(const value_t *values, index_t length) {
+  value_t l2_norm_sq(const value_t *values, size_t length) {
     value_t result =  0.0;
-    for (index_t ind = 0; ind < length; ++ind)
+    for (size_t ind = 0; ind < length; ++ind)
       result += values[ind] * values[ind];
     return result;
   }
 
-  value_t l1_norm(value_t *vec, index_t len) {
+  value_t l1_norm(value_t *vec, size_t len) {
     value_t result = 0.0;
-    for (index_t ind = 0; ind < len; ++ind)
-      result += std::abs(vec[ind]);
+    for (size_t ind = 0; ind < len; ++ind) {
+      if (vec[ind] != 0.0) 
+        result += std::abs(vec[ind]);
+    }
     return result;
   }
 
-  index_t l0_norm(value_t *values, index_t len) {
+  size_t l0_norm(value_t *values, size_t len) {
     index_t result = 0;
-    for (index_t ind = 0; ind < len; ++ind) {
+    for (size_t ind = 0; ind < len; ++ind) {
       if (values[ind] != 0.0)
         result++;
     }
     return result;
   }
 
-  value_t sum_array(const value_t *values, index_t length) {
+  value_t sum_array(const value_t *values, size_t length) {
     value_t result =  0.0;
-    for (index_t ind = 0; ind < length; ++ind)
+    for (size_t ind = 0; ind < length; ++ind)
       result += values[ind];
     return result;
   }
@@ -250,4 +252,6 @@ namespace BlitzL1 {
     target = values;
     scale_vector(target, scale);
   }
+
+
 }

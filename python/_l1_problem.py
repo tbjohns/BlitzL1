@@ -21,9 +21,9 @@ _int = ctypes.c_int
 
 
 _lib.BlitzL1_new_sparse_dataset.restype = _pointer
-_lib.BlitzL1_new_sparse_dataset.argtypes = [_index_t_p, _size_t_p, _value_t_p, _value_t_p, _index_t, _index_t, _size_t]
+_lib.BlitzL1_new_sparse_dataset.argtypes = [_index_t_p, _index_t_p, _value_t_p, _value_t_p, _size_t, _size_t, _size_t]
 _lib.BlitzL1_new_dense_dataset.restype = _pointer
-_lib.BlitzL1_new_dense_dataset.argtypes = [_value_t_p, _value_t_p, _index_t, _index_t]
+_lib.BlitzL1_new_dense_dataset.argtypes = [_value_t_p, _value_t_p, _size_t, _size_t]
 _lib.BlitzL1_free_dataset.argtypes = [_pointer]
 _lib.BlitzL1_free_dataset.restype = None
 _lib.BlitzL1_get_column_norm.restype = _value_t
@@ -93,14 +93,14 @@ class _L1Problem(object):
 
   def _load_dataset(self, A, b):
     self._shape = A.shape
-    n = _index_t(A.shape[0])
-    d = _index_t(A.shape[1])
+    n = _size_t(A.shape[0])
+    d = _size_t(A.shape[1])
     (self._b, labels_arg) = data_as(b, _value_t_p)
     if sparse.issparse(A):
       if not sparse.isspmatrix_csc(A):
         A = A.tocsc()
       (self._indices, indices_arg) = data_as(A.indices, _index_t_p)
-      (self._indptr, indptr_arg) = data_as(A.indptr, _size_t_p)
+      (self._indptr, indptr_arg) = data_as(A.indptr, _index_t_p)
       (self._data, data_arg) = data_as(A.data, _value_t_p)
       nnz = _size_t(A.nnz)
       self._dataset = _lib.BlitzL1_new_sparse_dataset(

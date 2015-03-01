@@ -30,6 +30,9 @@ namespace BlitzL1 {
 
       void prioritize_features(const Dataset *data, value_t lambda, const value_t *x, size_t max_size_C);
 
+      bool first_prox_newton_iteration;
+      std::vector<value_t> prox_newton_gradients;
+      void reset_prox_newton_variables();
       void run_prox_newton_iteration(value_t *x, 
                                      value_t &intercept, 
                                      value_t lambda,

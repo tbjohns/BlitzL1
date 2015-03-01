@@ -17,7 +17,9 @@ using std::endl;
 using std::min;
 using std::swap;
 
-const int MAX_BACKTRACK_ITR = 20;
+const int MAX_BACKTRACK_ITR = 16;
+const int MAX_PROX_NEWTON_CD_ITR = 16;
+const int MIN_PROX_NEWTON_CD_ITR = 2;
 
 void Solver::update_intercept(value_t &intercept, 
                               const Loss *loss_function,
@@ -65,6 +67,11 @@ value_t Solver::compute_lambda_max(const Dataset *data, const char* loss_type) {
   return max_abs(ATtheta);
 }
 
+void Solver::reset_prox_newton_variables() {
+  first_prox_newton_iteration = true;
+  prox_newton_gradients.clear();
+}
+
 void Solver::run_prox_newton_iteration(value_t *x, 
                                        value_t &intercept, 
                                        value_t lambda,
@@ -81,12 +88,10 @@ void Solver::run_prox_newton_iteration(value_t *x,
   random_shuffle(prioritized_features.begin(), 
                  prioritized_features.begin() + working_set_size);
   */
-  /*
   vector<size_t> rand_permutation;
   rand_permutation.reserve(working_set_size);
   for (size_t ind = 0; ind < working_set_size; ++ind)
     rand_permutation.push_back(ind);
-    */
 
   // Set up gradient and hessian values:
   vector<value_t> H;
@@ -102,11 +107,22 @@ void Solver::run_prox_newton_iteration(value_t *x,
   // Cache values for updating intercept:
   value_t sum_theta = sum_vector(theta);
   value_t sum_H = sum_vector(H);
+
+  // Determine stopping conditions for approximating Newton step:
+  value_t prox_newton_epsilon = 0.0;
+  int max_cd_itr = MAX_PROX_NEWTON_CD_ITR;
+  if (first_prox_newton_iteration) {
+    prox_newton_gradients.assign(working_set_size, 0.0);
+    max_cd_itr = MIN_PROX_NEWTON_CD_ITR;
+    first_prox_newton_iteration = false;
+  } else {
+    prox_newton_epsilon = 
+        l2_norm_diff_sq(prox_newton_gradients, grad_cache);
+  }
   
   // Approximately solve for newton direction:
-  for (int cd_itr = 0; cd_itr < 10; ++cd_itr) {
+  for (int cd_itr = 0; cd_itr < max_cd_itr; ++cd_itr) {
 
-    /*
     random_shuffle(rand_permutation.begin(), rand_permutation.end());
     for (size_t rp_ind = 0; rp_ind < working_set_size; ++rp_ind) {
       size_t new_index = rand_permutation[rp_ind];
@@ -115,8 +131,8 @@ void Solver::run_prox_newton_iteration(value_t *x,
       swap(grad_cache[rp_ind], grad_cache[new_index]);
       swap(hess_cache[rp_ind], hess_cache[new_index]);
     }
-    */
 
+    value_t sum_sq_hess_diff = 0.0;
     for (size_t ind = 0; ind < working_set_size; ++ind) {
       size_t j = prioritized_features[ind];
       const Column *col = data->get_column(j);
@@ -140,6 +156,7 @@ void Solver::run_prox_newton_iteration(value_t *x,
 
       Delta_x[ind] = new_value - x[j];
       col->add_multiple(A_Delta_x, diff);
+      sum_sq_hess_diff += diff * diff * hess * hess;
     }
 
     // Update intercept:
@@ -148,6 +165,12 @@ void Solver::run_prox_newton_iteration(value_t *x,
       value_t diff = -(ip + sum_theta)/sum_H;
       Delta_intercept += diff;
       add_scaler(A_Delta_x, diff);
+    }
+
+    if (sum_sq_hess_diff < prox_newton_epsilon
+        && cd_itr + 1 >= MIN_PROX_NEWTON_CD_ITR) {
+      cout << "num cd itr is " << cd_itr + 1 << endl;
+      break;
     }
   }
 
@@ -181,6 +204,19 @@ void Solver::run_prox_newton_iteration(value_t *x,
       t *= 0.5;
     }
   }
+
+  // Save gradients for next iteration stopping criteria:
+  if (t != 1.0) {
+    for (size_t i = 0; i < A_Delta_x.size(); ++i)
+      A_Delta_x[i] *= t;
+  }
+  for (size_t ind = 0; ind < working_set_size; ++ind) {
+    size_t j = prioritized_features[ind];
+    const Column *col = data->get_column(j);
+    prox_newton_gradients[ind] = grad_cache[ind] 
+                 + col->weighted_inner_product(A_Delta_x, H);
+  }
+
 }
 
 value_t Solver::priority_norm_j(size_t j, const Dataset* data) {
@@ -350,6 +386,7 @@ void Solver::solve(const Dataset *data,
       working_set_size = prioritized_features.size();
   
     // Solve subproblem:
+    reset_prox_newton_variables();
     for (int prox_newt_itr = 0; prox_newt_itr < 5; prox_newt_itr++){
       run_prox_newton_iteration(x, intercept, lambda, loss_function, data); 
       update_intercept(intercept, loss_function, data);

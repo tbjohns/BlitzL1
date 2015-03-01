@@ -213,6 +213,15 @@ void test_Math() {
   if (l0_norm(x, 5) != 3)
     cerr << "Test l0_norm failed" << endl;
 
+
+  vector<value_t> vec4;
+  vector<value_t> vec5;
+  vec5.push_back(1.0);
+  vec4.push_back(-1.0);
+  vec5.push_back(0.5);
+  vec4.push_back(0.0);
+  if (l2_norm_diff_sq(vec4, vec5) != 4.25)
+    cerr << "Test l2_norm_diff_sq failed" << endl;
 }
 
 int main() {

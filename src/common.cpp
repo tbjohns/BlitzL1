@@ -195,6 +195,16 @@ namespace BlitzL1 {
     return result;
   }
 
+  value_t l2_norm_diff_sq(const std::vector<value_t> &vec1,
+                          const std::vector<value_t> &vec2) {
+    value_t result = 0.0;
+    for (size_t ind = 0; ind < vec1.size(); ++ind) {
+      value_t diff = vec1[ind] - vec2[ind];
+      result += diff * diff;
+    }
+    return result;
+  }
+
   value_t sum_array(const value_t *values, size_t length) {
     value_t result =  0.0;
     for (size_t ind = 0; ind < length; ++ind)

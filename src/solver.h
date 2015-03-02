@@ -13,6 +13,7 @@ namespace BlitzL1 {
       std::vector<value_t> phi;
       std::vector<value_t> ATphi;
       std::vector<value_t> aux_dual;
+      value_t theta_scale;
 
       size_t working_set_size;
       std::vector<size_t> prioritized_features;
@@ -24,16 +25,17 @@ namespace BlitzL1 {
       value_t min_time;
       value_t max_time;
 
-      void update_intercept(value_t &intercept, 
+      value_t update_intercept(value_t &intercept, 
                             const Loss *loss_function,
                             const Dataset *data);
 
       void prioritize_features(const Dataset *data, value_t lambda, const value_t *x, size_t max_size_C);
 
       bool first_prox_newton_iteration;
-      std::vector<value_t> prox_newton_gradients;
+      value_t prox_newton_grad_diff;
+      std::vector<value_t> prox_newton_grad_cache;
       void reset_prox_newton_variables();
-      void run_prox_newton_iteration(value_t *x, 
+      value_t run_prox_newton_iteration(value_t *x, 
                                      value_t &intercept, 
                                      value_t lambda,
                                      const Loss *loss_function, 

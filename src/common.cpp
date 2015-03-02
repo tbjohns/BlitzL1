@@ -181,7 +181,7 @@ namespace BlitzL1 {
     value_t result = 0.0;
     for (size_t ind = 0; ind < len; ++ind) {
       if (vec[ind] != 0.0) 
-        result += std::abs(vec[ind]);
+        result += fabs(vec[ind]);
     }
     return result;
   }
@@ -236,8 +236,8 @@ namespace BlitzL1 {
   value_t max_abs(const vector<value_t> &vec) {
     value_t result = 0.0;
     for (size_t ind = 0; ind < vec.size(); ++ind) {
-      if (std::abs(vec[ind]) > result)
-        result = std::abs(vec[ind]);
+      if (fabs(vec[ind]) > result)
+        result = fabs(vec[ind]);
     }
     return result;
   }

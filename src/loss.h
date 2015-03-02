@@ -7,16 +7,15 @@
 namespace BlitzL1 {
   
   class Loss {
-    protected:
-      void compute_Ax(
-        const value_t *x,
-        value_t intercept,
-        const Dataset *data,
-        std::vector<value_t> &result) const;
-    
     public:
       const value_t L;
       Loss() : L(1.0) {} 
+
+      void compute_Ax(
+        std::vector<value_t> &Ax,
+        const value_t *x,
+        value_t intercept,
+        const Dataset *data) const;
 
       virtual value_t dual_obj(
         const std::vector<value_t> &theta,
@@ -25,25 +24,24 @@ namespace BlitzL1 {
 
       virtual value_t primal_loss(
         const std::vector<value_t> &theta,
-        const std::vector<value_t> &aux_dual) const = 0;
+        const std::vector<value_t> &Ax,
+        const Dataset *data) const = 0;
 
       virtual void compute_dual_points(
         std::vector<value_t> &theta,
-        std::vector<value_t> &aux_dual,
-        const value_t *x,
-        value_t intercept,
+        std::vector<value_t> &Ax,
         const Dataset *data) const = 0;
 
       virtual void compute_H(
         std::vector<value_t> &H,
         const std::vector<value_t> &theta,
-        const std::vector<value_t> &aux_dual,
+        const std::vector<value_t> &Ax,
         const Dataset *data) const = 0;
     
       virtual void apply_intercept_update(
         value_t delta,
         std::vector<value_t> &theta,
-        std::vector<value_t> &aux_dual,
+        std::vector<value_t> &Ax,
         const Dataset *data) const = 0;
   };
 
@@ -60,25 +58,24 @@ namespace BlitzL1 {
 
       value_t primal_loss(
         const std::vector<value_t> &theta,
-        const std::vector<value_t> &aux_dual) const;
+        const std::vector<value_t> &Ax,
+        const Dataset* data) const;
 
       void compute_dual_points(
         std::vector<value_t> &theta,
-        std::vector<value_t> &aux_dual,
-        const value_t *x,
-        value_t intercept,
+        std::vector<value_t> &Ax,
         const Dataset *data) const;
 
       void compute_H(
         std::vector<value_t> &H,
         const std::vector<value_t> &theta,
-        const std::vector<value_t> &aux_dual,
+        const std::vector<value_t> &Ax,
         const Dataset *data) const;
         
       void apply_intercept_update(
         value_t delta,
         std::vector<value_t> &theta,
-        std::vector<value_t> &aux_dual,
+        std::vector<value_t> &Ax,
         const Dataset *data) const;
   };
 
@@ -95,25 +92,24 @@ namespace BlitzL1 {
 
       value_t primal_loss(
         const std::vector<value_t> &theta,
-        const std::vector<value_t> &aux_dual) const;
+        const std::vector<value_t> &Ax,
+        const Dataset* data) const;
 
       void compute_dual_points(
         std::vector<value_t> &theta,
-        std::vector<value_t> &aux_dual,
-        const value_t *x,
-        value_t intercept,
+        std::vector<value_t> &Ax,
         const Dataset *data) const;
 
       void compute_H(
         std::vector<value_t> &H,
         const std::vector<value_t> &theta,
-        const std::vector<value_t> &aux_dual,
+        const std::vector<value_t> &Ax,
         const Dataset *data) const;
 
       void apply_intercept_update(
         value_t delta,
         std::vector<value_t> &theta,
-        std::vector<value_t> &aux_dual,
+        std::vector<value_t> &Ax,
         const Dataset *data) const;
   };
 

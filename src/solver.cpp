@@ -9,13 +9,13 @@
 #include <algorithm>
 #include <limits>
 
-using namespace BlitzL1;
-
 using std::vector;
 using std::cout;
 using std::endl;
 using std::min;
 using std::swap;
+
+namespace BlitzL1 {
 
 const int MAX_BACKTRACK_ITR = 16;
 const int MAX_PROX_NEWTON_CD_ITR = 16;
@@ -23,8 +23,12 @@ const value_t PROX_NEWTON_EPSILON_RATIO = 16.0;
 const int MIN_PROX_NEWTON_CD_ITR = 2;
 
 value_t Solver::update_intercept(value_t &intercept, 
-                              const Loss *loss_function,
-                              const Dataset *data) {
+                                 const Loss *loss_function,
+                                 const Dataset *data) {
+  // Optimizes over intercept variable with other weights fixed
+  // Modifies intercept, theta, and Ax
+  // Returns change in intercept value
+
   if (!use_intercept)
     return 0.0;
 
@@ -33,20 +37,22 @@ value_t Solver::update_intercept(value_t &intercept,
   vector<value_t> H;
   for (int itr = 0; itr < 10; ++itr) {
     value_t grad = sum_vector(theta);
-    loss_function->compute_H(H, theta, aux_dual, data);
+    if (fabs(grad) <= 1e-14)
+      break;
+    loss_function->compute_H(H, theta, Ax, data);
     value_t hess = sum_vector(H);
     value_t delta = -grad / hess;
+    loss_function->apply_intercept_update(delta, theta, Ax, data);
     intercept += delta;
-    loss_function->apply_intercept_update(delta, theta, aux_dual, data);
-
-    if (std::abs(grad) <= 1e-14)
-      break;
   }
 
   return intercept - intercept_old;
 }
 
 Loss* get_loss_function(const char* loss_type) {
+  // Returns pointer to new loss object of type "loss_type"
+  // Raises exception if loss type not recognized
+
   if (strcmp(loss_type, "logistic") == 0)
     return new LogisticLoss();
   else if (strcmp(loss_type, "squared") == 0)
@@ -56,22 +62,32 @@ Loss* get_loss_function(const char* loss_type) {
 }
 
 value_t Solver::compute_lambda_max(const Dataset *data, const char* loss_type) {
+  // Returns smallest lambda value for which solution is entirely 0
 
+  // Initialize theta:
   Loss* loss_function = get_loss_function(loss_type);    
+  size_t n = data->get_n();
   size_t d = data->get_d();
-  vector<value_t> x(d, 0.0);
-  value_t intercept = 0.0;
-  loss_function->compute_dual_points(
-                    theta, aux_dual, &x[0], intercept, data);
+  Ax.assign(n, 0.0);
+  loss_function->compute_dual_points(theta, Ax, data);
+
+  // Center theta (if using intercept term):
+  value_t intercept;
   update_intercept(intercept, loss_function, data);
+
+  // Compute loss gradient for all features:
   prioritized_features.resize(d);
   for (size_t j = 0; j < d; ++j)
     prioritized_features[j] = j;
   update_ATtheta(data);
+
+  // Return largest magnitude in loss gradients:
   return max_abs(ATtheta);
 }
 
 void Solver::reset_prox_newton_variables() {
+  // Resets subproblem solver variables before solving subproblem
+
   first_prox_newton_iteration = true;
   prox_newton_grad_diff = 0.0;
 }
@@ -81,6 +97,9 @@ value_t Solver::run_prox_newton_iteration(value_t *x,
                                        value_t lambda,
                                        const Loss *loss_function, 
                                        const Dataset *data) {
+  // Runs one iteration of subproblem solver
+  // Returns theta_scale, which is the largest scaler value <= 1
+  // for which scaler*theta is feasible for the subproblem
 
   // Initialize iteration:
   size_t n = data->get_n();
@@ -96,7 +115,7 @@ value_t Solver::run_prox_newton_iteration(value_t *x,
 
   // Set up hessian values:
   vector<value_t> H;
-  loss_function->compute_H(H, theta, aux_dual, data);
+  loss_function->compute_H(H, theta, Ax, data);
   vector<value_t> hess_cache(working_set_size, 0.0);
   for (size_t ind = 0; ind < working_set_size; ++ind) {
     size_t j = prioritized_features[ind];
@@ -196,10 +215,13 @@ value_t Solver::run_prox_newton_iteration(value_t *x,
       else if (x[j] > 0)
         subgrad_t += lambda * Delta_x[ind];
       else
-        subgrad_t -= lambda * std::abs(Delta_x[ind]);
+        subgrad_t -= lambda * fabs(Delta_x[ind]);
     }
-    loss_function->compute_dual_points(
-                      theta, aux_dual, x, intercept, data);
+    for (size_t i = 0; i < n; ++i) {
+      Ax[i] += diff_t * A_Delta_x[i];
+    }
+
+    loss_function->compute_dual_points(theta, Ax, data);
     subgrad_t += inner_product(A_Delta_x, theta);
 
     if (subgrad_t < 0) {
@@ -211,12 +233,12 @@ value_t Solver::run_prox_newton_iteration(value_t *x,
   }
 
   // Update intercept exactly:
-  value_t delta = update_intercept(intercept, loss_function, data);
+  value_t delta_intercept = update_intercept(intercept, loss_function, data);
 
   // Cache gradients for next iteration:
   if (t != 1.0) {
     for (size_t i = 0; i < A_Delta_x.size(); ++i) {
-      A_Delta_x[i] = t * A_Delta_x[i] + delta;
+      A_Delta_x[i] = t * A_Delta_x[i] + delta_intercept;
     }
   }
   for (size_t ind = 0; ind < working_set_size; ++ind) {
@@ -238,10 +260,12 @@ value_t Solver::run_prox_newton_iteration(value_t *x,
   else
     return 1.0;
 
-
 }
 
 value_t Solver::priority_norm_j(size_t j, const Dataset* data) {
+  // Returns l2 norm of feature j
+  // If using intercept, returns l2 norm of A_j - mean(A_j)
+
   if (use_intercept)
     return data->get_column(j)->l2_norm_centered();
   else
@@ -249,6 +273,10 @@ value_t Solver::priority_norm_j(size_t j, const Dataset* data) {
 }
 
 value_t Solver::compute_alpha(const Dataset* data, value_t lambda, value_t theta_scale) {
+  // Returns alpha, the largest value in [0,1] such that
+  // (1 - alpha) * phi + alpha * theta * theta_scale is feasible
+  // Requires values of ATphi and ATtheta to be current
+
   value_t best_alpha = 1.0;
   for (vector<size_t>::iterator j = prioritized_features.begin();
        j != prioritized_features.end();
@@ -260,7 +288,7 @@ value_t Solver::compute_alpha(const Dataset* data, value_t lambda, value_t theta
 
     value_t l = ATphi[*j];
     value_t r = theta_scale * ATtheta[*j];
-    if (std::abs(r) <= lambda)
+    if (fabs(r) <= lambda)
       continue;
 
     value_t alpha;
@@ -276,6 +304,9 @@ value_t Solver::compute_alpha(const Dataset* data, value_t lambda, value_t theta
 }
 
 void Solver::update_ATtheta(const Dataset *data) {
+  // Updates values of ATtheta for all feature indices in
+  // prioritized_features vector
+
   size_t d = data->get_d();
   ATtheta.resize(d);
   for (vector<size_t>::iterator j = prioritized_features.begin();
@@ -286,6 +317,10 @@ void Solver::update_ATtheta(const Dataset *data) {
 }
 
 void Solver::update_phi(value_t alpha, value_t theta_scale) {
+  // Updates phi via phi = (1-alpha)*phi + alpha*theta*theta_scale
+  // Also updates ATphi
+  // Requires values of ATtheta and ATphi to be current
+
   for (vector<size_t>::iterator j = prioritized_features.begin();
        j != prioritized_features.end();
        ++j) {
@@ -295,7 +330,17 @@ void Solver::update_phi(value_t alpha, value_t theta_scale) {
     phi[i] = (1 - alpha) * phi[i] + alpha * theta_scale * theta[i];
 }
 
+/*
+value_t Solver::priority_value(const Dataset *data, index_t j) {
+  Column* col = data->get_column(j);
+  value_t AjTAx = col->inner_product(Ax);
+}
+*/
+
 void Solver::prioritize_features(const Dataset *data, value_t lambda, const value_t *x, size_t max_size_C) {
+  // Reorders prioritized_features so that first max_size_C
+  // elements are feature indices with highest priority in order
+
   size_t d = data->get_d();
   feature_priorities.resize(d);
   for (vector<size_t>::iterator j = prioritized_features.begin();
@@ -309,7 +354,7 @@ void Solver::prioritize_features(const Dataset *data, value_t lambda, const valu
       if (norm <= 0) {
         feature_priorities[*j] = std::numeric_limits<value_t>::max();
       } else {
-        value_t priority_value = (lambda - std::abs(AjTphi)) / norm;
+        value_t priority_value = (lambda - fabs(AjTphi)) / norm;
         feature_priorities[*j] = priority_value;
       }
     }
@@ -334,13 +379,16 @@ void Solver::solve(const Dataset *data,
                    char *solution_status,
                    value_t &primal_obj,
                    value_t &duality_gap,
-                   int &num_iterations,
+                   int &itr_counter,
                    const char *log_directory) {
+
+  // Solves l1-regularized loss minimization problem
 
   Timer timer;
   Logger logger(log_directory);
+  cout.precision(10);
 
-  num_iterations = 0;
+  itr_counter = 0;
   Loss* loss_function = get_loss_function(loss_type);
   size_t n = data->get_n();
   size_t d = data->get_d();
@@ -350,22 +398,24 @@ void Solver::solve(const Dataset *data,
     prioritized_features[j] = j;
 
   // Initialize dual points:
-  loss_function->compute_dual_points(
-                    theta, aux_dual, x, intercept, data);
+  loss_function->compute_Ax(Ax, x, intercept, data);
+  loss_function->compute_dual_points(theta, Ax, data);
+
   phi.assign(n, 0.0);
   ATphi.assign(d, 0.0);
   ATtheta.assign(d, 0.0);
   theta_scale = 1.0;
 
+  // Update intercept (if using intercept term):
+  update_intercept(intercept, loss_function, data);
+
   // Initialize objective values:
-  value_t primal_loss = loss_function->primal_loss(theta, aux_dual);
+  value_t primal_loss = loss_function->primal_loss(theta, Ax, data);
   primal_obj = primal_loss + lambda * l1_norm(x, d);
 
   // Main Blitz loop:
-  while (++num_iterations) {
+  while (++itr_counter) {
     value_t primal_obj_last = primal_obj;
-
-    update_intercept(intercept, loss_function, data);
 
     update_ATtheta(data);
 
@@ -398,23 +448,25 @@ void Solver::solve(const Dataset *data,
   
     // Solve subproblem:
     value_t epsilon = 0.3; 
-
     reset_prox_newton_variables();
     while (true) {
-      theta_scale = run_prox_newton_iteration(x, intercept, lambda, loss_function, data); 
+      theta_scale = run_prox_newton_iteration(
+                        x, intercept, lambda, loss_function, data); 
 
-      primal_loss = loss_function->primal_loss(theta, aux_dual);
+      primal_loss = loss_function->primal_loss(theta, Ax, data);
       primal_obj = primal_loss + lambda * l1_norm(x, d); 
       value_t subprob_dual_obj = loss_function->dual_obj(theta, data, theta_scale);
+      if (primal_loss != primal_loss)
+        throw primal_loss;
 
       value_t subprob_duality_gap = primal_obj - subprob_dual_obj;
       if (subprob_duality_gap < epsilon * (primal_obj - dual_obj))
         break;
-      if (subprob_duality_gap / abs(subprob_dual_obj) < tolerance)
+      if (subprob_duality_gap / fabs(subprob_dual_obj) < tolerance)
         break;
     }
 
-    primal_loss = loss_function->primal_loss(theta, aux_dual);
+    primal_loss = loss_function->primal_loss(theta, Ax, data);
     primal_obj = primal_loss + lambda * l1_norm(x, d); 
     duality_gap = primal_obj - dual_obj;
 
@@ -431,7 +483,7 @@ void Solver::solve(const Dataset *data,
     timer.continue_timing();
 
     // Test stopping conditions:
-    if ((duality_gap / abs(dual_obj) < tolerance) &&
+    if ((duality_gap / fabs(dual_obj) < tolerance) &&
         (elapsed_time > min_time)) {
       sprintf(solution_status, "reached stopping tolerance");
       break;
@@ -449,3 +501,4 @@ void Solver::solve(const Dataset *data,
   }
 }
 
+}

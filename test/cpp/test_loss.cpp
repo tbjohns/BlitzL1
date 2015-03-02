@@ -21,14 +21,15 @@ void test_SquaredLoss() {
   Dataset *data = new DatasetFromCSCPointers(indices, indptr, values, labels, 3, 5, 7);
 
   vector<value_t> theta;
-  vector<value_t> aux_dual;
+  vector<value_t> Ax;
   value_t x[5] = {1.0, 0.0, 0.0, 0.0, -2.0};
   value_t intercept = 2.0;
-  loss->compute_dual_points(theta, aux_dual, x, intercept, data);
+  loss->compute_Ax(Ax, x, intercept, data);
+  loss->compute_dual_points(theta, Ax, data);
   if (theta[0] != 1.0 || theta[1] != -0.5 || theta[2] != 0.5)
     cerr << "Test SquaredLoss compute_dual_points failed" << endl;
   
-  if (loss->primal_loss(theta, aux_dual) != 0.75)
+  if (loss->primal_loss(theta, Ax, data) != 0.75)
     cerr << "Test SquaredLoss primal_loss failed" << endl;
 
   if (loss->dual_obj(theta, data) != -0.25)

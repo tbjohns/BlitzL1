@@ -9,10 +9,10 @@ namespace BlitzL1 {
   class Solver {
     private:
       std::vector<value_t> theta;
+      std::vector<value_t> Ax;
       std::vector<value_t> ATtheta;
       std::vector<value_t> phi;
       std::vector<value_t> ATphi;
-      std::vector<value_t> aux_dual;
       value_t theta_scale;
 
       size_t working_set_size;
@@ -74,7 +74,7 @@ namespace BlitzL1 {
                  char *solution_status,
                  value_t &primal_obj,
                  value_t &duality_gap,
-                 int &num_iterations,
+                 int &itr_counter,
                  const char* log_directory);
 
       value_t compute_lambda_max(const Dataset *data, const char* loss_type);

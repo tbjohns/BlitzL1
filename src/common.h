@@ -100,8 +100,8 @@ namespace BlitzL1 {
 
   value_t l2_norm_sq(const std::vector<value_t> &vec);
   value_t l2_norm_sq(const value_t *values, size_t length);
-  value_t l1_norm(value_t *x, size_t d);
-  size_t l0_norm(value_t *x, size_t d);
+  value_t l1_norm(const value_t *x, size_t d);
+  size_t l0_norm(const value_t *x, size_t d);
   value_t l2_norm_diff_sq(const std::vector<value_t> &vec1,
                           const std::vector<value_t> &vec2);
   value_t sum_vector(const std::vector<value_t> &vec);

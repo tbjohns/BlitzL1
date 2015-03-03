@@ -11,14 +11,12 @@ const value_t MIN_ABS_LABEL = 1e-5;
 LogisticLoss::LogisticLoss() : L(0.25) {}
 
 value_t LogisticLoss::primal_loss(const vector<value_t> &theta,
-                                  const vector<value_t> &Ax,
+                                  const vector<value_t> &aux_dual,
                                   const Dataset *data) const {
   value_t loss = 0.0;
   size_t n = data->get_n();
   for (size_t i = 0; i < n; ++i) {
-    value_t label = data->get_label(i);
-    value_t exp_value = exp(-label * Ax[i]);
-    loss += log1p(exp_value);
+    loss += log1p(aux_dual[i]);
   }
   return loss;
 }
@@ -41,16 +39,18 @@ value_t LogisticLoss::dual_obj(const vector<value_t> &theta,
 }
 
 void LogisticLoss::compute_dual_points(
-                              vector<value_t> &theta,
                               vector<value_t> &Ax,
+                              vector<value_t> &theta,
+                              vector<value_t> &aux_dual,
                               const Dataset* data) const {
 
   index_t n = data->get_n();
   theta.resize(n);
+  aux_dual.resize(n);
   for (index_t i = 0; i < n; ++i) {
     value_t minus_label = -data->get_label(i);
-    value_t exp_value = exp(minus_label * Ax[i]);
-    theta[i] = minus_label * exp_value / (1.0 + exp_value);
+    aux_dual[i] = exp(minus_label * Ax[i]);
+    theta[i] = minus_label * aux_dual[i] / (1.0 + aux_dual[i]);
   }
 }
 
@@ -68,15 +68,16 @@ void LogisticLoss::compute_H(vector<value_t> &H,
 
 void LogisticLoss::apply_intercept_update(
                 value_t delta,
-                vector<value_t> &theta, 
                 vector<value_t> &Ax, 
+                vector<value_t> &theta, 
+                vector<value_t> &aux_dual,
                 const Dataset* data) const {
   index_t n = data->get_n(); 
   for (index_t i = 0; i < n; ++i) {
     value_t minus_label = -data->get_label(i);
     Ax[i] += delta;
-    value_t exp_value = exp(minus_label * Ax[i]);
-    theta[i] = minus_label * exp_value / (1.0 + exp_value);
+    aux_dual[i] = exp(minus_label * Ax[i]);
+    theta[i] = minus_label * aux_dual[i] / (1.0 + aux_dual[i]);
   }
 }
 

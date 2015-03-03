@@ -177,7 +177,7 @@ namespace BlitzL1 {
     return result;
   }
 
-  value_t l1_norm(value_t *vec, size_t len) {
+  value_t l1_norm(const value_t *vec, size_t len) {
     value_t result = 0.0;
     for (size_t ind = 0; ind < len; ++ind) {
       if (vec[ind] != 0.0) 
@@ -186,7 +186,7 @@ namespace BlitzL1 {
     return result;
   }
 
-  size_t l0_norm(value_t *values, size_t len) {
+  size_t l0_norm(const value_t *values, size_t len) {
     index_t result = 0;
     for (size_t ind = 0; ind < len; ++ind) {
       if (values[ind] != 0.0)

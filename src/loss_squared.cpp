@@ -7,7 +7,7 @@ using std::vector;
 SquaredLoss::SquaredLoss() : L(1.0) {}
 
 value_t SquaredLoss::primal_loss(const vector<value_t> &theta,
-                                 const vector<value_t> &Ax,
+                                 const vector<value_t> &aux_dual,
                                  const Dataset *data) const {
   return 0.5 * l2_norm_sq(theta);
 }
@@ -24,8 +24,9 @@ value_t SquaredLoss::dual_obj(const vector<value_t> &theta,
 }
 
 void SquaredLoss::compute_dual_points(
-                              vector<value_t> &theta,
                               vector<value_t> &Ax,
+                              vector<value_t> &theta,
+                              vector<value_t> &aux_dual,
                               const Dataset* data) const {
   size_t n = data->get_n();
   theta.resize(n);
@@ -44,8 +45,9 @@ void SquaredLoss::compute_H(vector<value_t> &H,
 
 void SquaredLoss::apply_intercept_update(
                 value_t delta,
-                vector<value_t> &theta, 
                 vector<value_t> &Ax, 
+                vector<value_t> &theta, 
+                vector<value_t> &aux_dual,
                 const Dataset* data) const {
   index_t n = data->get_n(); 
   for (index_t i = 0; i < n; ++i) {

@@ -13,6 +13,7 @@ namespace BlitzL1 {
       std::vector<value_t> ATtheta;
       std::vector<value_t> phi;
       std::vector<value_t> ATphi;
+      std::vector<value_t> aux_dual;
       value_t theta_scale;
 
       size_t working_set_size;

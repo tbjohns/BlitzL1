@@ -1,13 +1,10 @@
+import blitzl1
+
 import sys
 import os
-pwd = os.path.abspath(os.path.dirname(__file__))
-sys.path.append(os.path.join(pwd, ".."))
-
 from scipy import sparse
 import numpy as np
 from sklearn.datasets import load_svmlight_file
-
-import blitzl1
 
 blitzl1.set_verbose(True)
 

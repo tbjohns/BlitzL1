@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <vector>
 #include <cmath>
 
@@ -7,7 +8,6 @@ namespace BlitzL1 {
 
   typedef double value_t; 
   typedef int index_t;
-  typedef std::size_t size_t;
 
   class Column {
     protected:

@@ -10,9 +10,20 @@ ext = Extension("blitzl1.libblitzl1",
                 extra_compile_args=['-O3'],
                 sources = source_list)
 
-setup(name = "BlitzL1",
-      version = "0.0",
-      description = "Fast, principled, L1-regularized loss minimization",
-      package_dir = {"blitzl1": "python"},
-      packages = ["blitzl1"],
-      ext_modules = [ext])
+setup(
+  name = "BlitzL1",
+  version = "0.0",
+  description = "Fast, principled, L1-regularized loss minimization",
+  package_dir = {"blitzl1": "python"},
+  packages = ["blitzl1"],
+  ext_modules = [ext],
+  author = "Tyler B. Johnson",
+  author_email = "tyler@tbjohns.com",
+  url = "https://github.com/tbjohns/blitzl1",
+  download_url = "https://github.com/tbjohns/blitzl1/tarball/0.0",
+  keywords=["supervised learning",
+            "optimization",
+            "lasso",
+            "l1 regularized",
+            "l1 penalized"]
+)

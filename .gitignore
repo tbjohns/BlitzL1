@@ -2,6 +2,7 @@
 *.pyc
 
 bin
+build
 obj
 lib
 test/bin

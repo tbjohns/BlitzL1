@@ -7,7 +7,7 @@ from scipy import sparse
 import numpy as np
 from sklearn.datasets import load_svmlight_file
 
-import python as blitzl1
+import blitzl1
 
 blitzl1.set_verbose(True)
 

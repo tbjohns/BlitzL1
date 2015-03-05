@@ -3,7 +3,7 @@ import os
 pwd = os.path.abspath(os.path.dirname(__file__))
 sys.path.append(os.path.join(pwd, ".."))
 
-import python as blitzl1
+import blitzl1
 import numpy as np
 from scipy import sparse
 

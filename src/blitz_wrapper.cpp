@@ -23,10 +23,6 @@ extern "C" {
     return new DatasetFromFContiguousPointer(data, labels, n, d);
   }
 
-  void BlitzL1_free_dataset(Dataset* data) {
-    delete data;
-  }
-
   value_t BlitzL1_compute_lambda_max(Solver *solver, const Dataset* data, char* loss_type) {
     return solver->compute_lambda_max(data, loss_type);
   }

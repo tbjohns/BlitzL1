@@ -22,10 +22,11 @@ void test_SquaredLoss() {
 
   vector<value_t> theta;
   vector<value_t> Ax;
+  vector<value_t> aux_dual;
   value_t x[5] = {1.0, 0.0, 0.0, 0.0, -2.0};
   value_t intercept = 2.0;
   loss->compute_Ax(Ax, x, intercept, data);
-  loss->compute_dual_points(theta, Ax, data);
+  loss->compute_dual_points(Ax, theta, aux_dual, data);
   if (theta[0] != 1.0 || theta[1] != -0.5 || theta[2] != 0.5)
     cerr << "Test SquaredLoss compute_dual_points failed" << endl;
   

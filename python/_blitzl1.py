@@ -5,8 +5,7 @@ from scipy import sparse
 import pickle
 
 _dir = os.path.abspath(os.path.dirname(__file__))
-_lib = np.ctypeslib.load_library("../lib/libblitzl1.so", _dir)
-
+_lib = np.ctypeslib.load_library("libblitzl1", _dir)
 
 _index_t = ctypes.c_int32
 _value_t = ctypes.c_double
@@ -24,8 +23,6 @@ _lib.BlitzL1_new_sparse_dataset.restype = _pointer
 _lib.BlitzL1_new_sparse_dataset.argtypes = [_index_t_p, _index_t_p, _value_t_p, _value_t_p, _size_t, _size_t, _size_t]
 _lib.BlitzL1_new_dense_dataset.restype = _pointer
 _lib.BlitzL1_new_dense_dataset.argtypes = [_value_t_p, _value_t_p, _size_t, _size_t]
-_lib.BlitzL1_free_dataset.argtypes = [_pointer]
-_lib.BlitzL1_free_dataset.restype = None
 _lib.BlitzL1_get_column_norm.restype = _value_t
 _lib.BlitzL1_get_column_norm.argtype = [_pointer, _index_t]
 _lib.BlitzL1_get_label_i.restype = _value_t

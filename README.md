@@ -1,13 +1,24 @@
 # BlitzL1
 
-BlitzL1 is an efficient library for L1-regularized loss minimization in early stages of development.  Blitz can be called from Python with minimal overhead (support for R to come later).  For larger problems, we also intend to provide an out-of-core implementation and a distributed implementation using [rabit](https://github.com/tqchen/rabit).
+BlitzL1 is a fast, scalable library for minimizing L1-regularized losses.  L1-regularized learning is widely used in statistics and machine learning as it fits a function to data while simultaneously encouraging the result to be sparse (only a fraction of features used for prediction).  
 
-## Try it out
+Specifically, Blitz solves the following problems:
 
-Currently the easiest way to try Blitz is through its Python wrapper.  First download the repository and run `make`.  The following solves a sparse logistic regression problem with regularization 1.0:
+Name                       | Objective
+-------------------------- | ------------------------------
+Lasso                      | ![Lasso objective](images/lasso.png)
+Sparse logistic regression | ![Logistic regression objective](images/logreg.png)
+
+On a single machine, Blitz can be called from Python or C++ with support for additional languages coming soon.  Calls to Blitz have low overhead (minimal memory copying), meaning Blitz can be used as an effective subproblem solver in more elaborate algorithms.
+
+For larger problems, we are also working on releasing out-of-core and distributed implementations.
+
+## Use with Python
+
+You can try out an early version of the code using Python.  To install, run `pip install blitzl1`.  The following solves a sparse logistic regression problem with regularization λ=1:
 ```
-import python as blitzl1
+import blitzl1
 prob = blitzl1.LogRegProblem(A, b)
 sol = prob.solve(1.0)
 ```
-Of course, there are more features than that, so please play around.  Early feedback is much appreciated!
+Of course there is much more than that, so please play around.  Early feedback is much appreciated!

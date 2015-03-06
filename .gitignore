@@ -3,7 +3,9 @@
 
 bin
 build
+dist
 obj
 lib
 test/bin
 benchmark/data
+MANIFEST

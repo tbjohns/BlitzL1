@@ -1,0 +1,120 @@
+\mode<presentation>
+
+\def \headerfont{Helvetica Neue Bold}
+\def \basicfont{Open Sans}
+\def \monofont{Source Code Pro}
+
+\definecolor{tbjohns@blue}{HTML}{1F77B4}
+\definecolor{tbjohns@accent}{HTML}{9467bd}
+
+
+% General beamer:
+\beamertemplatenavigationsymbolsempty
+\beamertemplateheadempty
+
+\setbeamertemplate{itemize item}[circle]
+\setbeamertemplate{itemize subitem}{{\textendash}}
+
+% Colors:
+\setbeamercolor{upper title box}{fg=white,bg=tbjohns@blue}
+\setbeamercolor{lower title box}{bg=tbjohns@accent,fg=white}
+\setbeamercolor{frametitle}{bg=tbjohns@blue,fg=white}
+\setbeamercolor{block title}{fg=tbjohns@accent}
+\setbeamercolor{enumerate item}{fg=tbjohns@accent}
+\setbeamercolor{itemize item}{fg=tbjohns@accent}
+\setbeamercolor{itemize subitem}{fg=tbjohns@blue}
+\setbeamercolor{footnote}{fg=tbjohns@accent}
+
+% Fonts:
+\makeatletter
+\DeclareMathSizes{\@xipt}{13.2}{9.17}{6.42}
+\makeatother
+
+\usepackage{xltxtra}
+\usefonttheme{professionalfonts}
+\defaultfontfeatures{Mapping=tex-text} 
+\newcommand{\headerfs}{\fontspec{\headerfont}}
+\newcommand{\basicfs}{\fontspec{\basicfont}}
+\newcommand{\monofs}{\fontspec{\monofont}}
+\setsansfont{\basicfont}
+\setmonofont{\monofont}
+
+\setbeamerfont{frametitle}{size=\Large,family=\headerfs}
+\setbeamerfont{title}{size=\LARGE,family=\headerfs}
+\setbeamerfont{subtitle}{size=\large,family=\headerfs}
+\setbeamerfont{author}{size=\LARGE,family=\headerfs}
+\setbeamerfont{subsection part}{size=\large,family=\headerfs}
+\setbeamerfont{subsection title}{size=\LARGE,family=\headerfs}
+\setbeamerfont{algorithm}{fg=tbjohns@accent,size=\LARGE}
+
+% Color boxes:
+\usepackage{tcolorbox}
+\tcbset {
+  colback = white,
+  colframe = tbjohns@accent, 
+  coltext = black,
+  coltitle = white, 
+  fonttitle = \headerfs,
+  fontupper = \headerfs,
+  arc = 0pt,
+  outer arc = 0pt,
+}
+
+% Title slide:
+\setbeamertemplate{title page}{
+  \begin{beamercolorbox}[center rightskip=0cm,leftskip=0cm,sep=0.5cm,wd=12.5cm,ht=4.5cm]{upper title box}
+  \usebeamerfont{title}\inserttitle{}
+  \end{beamercolorbox}
+  \vspace{0.11cm}
+  \begin{beamercolorbox}[center rightskip=0cm,leftskip=0cm,sep=0.5cm,wd=12.5cm,ht=2.8cm]{lower title box}
+  \usebeamerfont{author}\insertauthor{} \\ \vspace{0.1cm}
+  \usebeamerfont{subtitle}\insertdate{} \\ \vspace{0.05cm}
+  \usebeamerfont{subtitle}\insertinstitute{} 
+  \end{beamercolorbox}
+}
+
+% Table of contents:
+\setbeamertemplate{section in toc}{
+  \color{tbjohns@accent}{\inserttocsectionnumber} \hspace{1em} \color{black}{\inserttocsection}
+}
+
+% Frame title:
+\setbeamertemplate{frametitle}{
+  \vspace{0.11cm}
+  \begin{beamercolorbox}[center rightskip=0cm,leftskip=0cm,sep=0.2cm,wd=12.5cm,ht=1.15cm]{frametitle}
+    \hspace{0.06cm}\insertframetitle\strut
+  \end{beamercolorbox}
+}
+
+% Section pages:
+\newcommand{\RNum}[1]{\uppercase\expandafter{\romannumeral #1\relax}}
+\setbeamertemplate{section page}{
+  \begin{beamercolorbox}[center rightskip=0cm,leftskip=0cm,sep=0.5cm,wd=12.5cm,ht=4.5cm]{lower title box}
+  \usebeamerfont{subsection part}{Part \RNum{\insertsectionnumber}} \\ \vspace{0.1cm} 
+  \usebeamerfont{subsection title}{\insertsectionhead}
+  \end{beamercolorbox}
+}
+\AtBeginSection{\frame{\sectionpage}}
+
+% Thanks slide:
+\newcommand{\thankyou}{
+  \begin{frame}
+  \begin{beamercolorbox}[center rightskip=0cm,leftskip=0cm,sep=0.5cm,wd=12.5cm,ht=4.5cm]{lower title box}
+    \usebeamerfont{subsection title}{Thanks!}
+  \end{beamercolorbox}
+  \end{frame}
+}
+
+% References:
+\usepackage{biblatex}
+\DeclareCiteCommand{\citetitleemph}
+  {\usebibmacro{prenote}}
+  {\emph{\thefield{title}}}
+  {\multicitedelim}
+  {\usebibmacro{postnote}}
+
+\newcommand{\ftcite}[2]{\textcolor{tbjohns@accent}{\footnote<#2>{\textcolor{tbjohns@blue}{\citeauthor{#1}, \citetitleemph{#1}, \citeyear{#1}.}}}}
+\renewcommand\footnoterule{}
+
+\mode
+<all>

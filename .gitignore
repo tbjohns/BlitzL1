@@ -9,3 +9,14 @@ lib
 test/bin
 benchmark/data
 MANIFEST
+
+images/src/*.aux
+images/src/*.bcf
+images/src/*.log
+images/src/*.nav
+images/src/*.out
+images/src/*.pdf
+images/src/*.ps
+images/src/*.xml
+images/src/*.snm
+images/src/*.toc

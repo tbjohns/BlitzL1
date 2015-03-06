@@ -21,9 +21,9 @@ setup(
   author_email = "tyler@tbjohns.com",
   url = "https://github.com/tbjohns/blitzl1",
   download_url = "https://github.com/tbjohns/blitzl1/tarball/0.0",
-  keywords=["supervised learning",
-            "optimization",
-            "lasso",
-            "l1 regularized",
-            "l1 penalized"]
+  keywords =["supervised learning",
+             "optimization",
+             "lasso",
+             "l1 regularized",
+             "l1 penalized"]
 )

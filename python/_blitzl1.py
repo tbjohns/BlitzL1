@@ -85,7 +85,7 @@ def data_as(obj, ctypes_type):
 
 class _L1Problem(object):
   def __init__(self, A, b):
-    self._loss_arg = _char_p(self._LOSS_TYPE)
+    self._loss_arg = _char_p(self._LOSS_TYPE.encode('utf-8'))
     self._load_dataset(A, b)
 
   def _load_dataset(self, A, b):

@@ -22,7 +22,7 @@ const int MAX_PROX_NEWTON_CD_ITR = 20;
 const value_t PROX_NEWTON_EPSILON_RATIO = 10.0;
 const int MIN_PROX_NEWTON_CD_ITR = 2;
 
-value_t Solver::update_intercept(value_t &intercept, 
+value_t Solver::update_intercept(value_t &intercept,
                                  const Loss *loss_function,
                                  const Dataset *data) {
   // Optimizes over intercept variable with other weights fixed
@@ -66,7 +66,7 @@ value_t Solver::compute_lambda_max(const Dataset *data, const char* loss_type) {
   // Returns smallest lambda value for which solution is entirely 0
 
   // Initialize theta:
-  Loss* loss_function = get_loss_function(loss_type);    
+  Loss* loss_function = get_loss_function(loss_type);
   size_t n = data->get_n();
   size_t d = data->get_d();
   Ax.assign(n, 0.0);
@@ -93,10 +93,10 @@ void Solver::reset_prox_newton_variables() {
   prox_newton_grad_diff = 0.0;
 }
 
-value_t Solver::run_prox_newton_iteration(value_t *x, 
-                                       value_t &intercept, 
+value_t Solver::run_prox_newton_iteration(value_t *x,
+                                       value_t &intercept,
                                        value_t lambda,
-                                       const Loss *loss_function, 
+                                       const Loss *loss_function,
                                        const Dataset *data) {
   // Runs one iteration of subproblem solver
   // Returns theta_scale, which is the largest scaler value <= 1
@@ -143,7 +143,7 @@ value_t Solver::run_prox_newton_iteration(value_t *x,
   } else {
     prox_newton_epsilon = PROX_NEWTON_EPSILON_RATIO * prox_newton_grad_diff;
   }
-  
+
   // Approximately solve for newton direction:
   for (int cd_itr = 0; cd_itr < max_cd_itr; ++cd_itr) {
 
@@ -151,7 +151,7 @@ value_t Solver::run_prox_newton_iteration(value_t *x,
     random_shuffle(rand_permutation.begin(), rand_permutation.end());
     for (size_t rp_ind = 0; rp_ind < working_set_size; ++rp_ind) {
       size_t new_index = rand_permutation[rp_ind];
-      swap(prioritized_features[rp_ind], prioritized_features[new_index]);  
+      swap(prioritized_features[rp_ind], prioritized_features[new_index]);
       swap(Delta_x[rp_ind], Delta_x[new_index]);
       swap(prox_newton_grad_cache[rp_ind], prox_newton_grad_cache[new_index]);
       swap(hess_cache[rp_ind], hess_cache[new_index]);
@@ -168,11 +168,11 @@ value_t Solver::run_prox_newton_iteration(value_t *x,
       if (hess <= 0.0)
         continue;
 
-      value_t grad = prox_newton_grad_cache[ind] 
+      value_t grad = prox_newton_grad_cache[ind]
                    + col->weighted_inner_product(A_Delta_x, H);
 
       // Apply coordinate descent update:
-      value_t old_value = x[j] + Delta_x[ind]; 
+      value_t old_value = x[j] + Delta_x[ind];
       value_t proposal = old_value - grad / hess;
       value_t new_value = soft_threshold(proposal, lambda / hess);
       value_t diff = new_value - old_value;
@@ -433,21 +433,21 @@ void Solver::solve(const Dataset *data,
     value_t thresh = sqrt(2 * duality_gap / loss_function->L);
     IndirectExceedsThreshold exceeds_thresh(feature_priorities, thresh);
     prioritized_features.erase(
-      remove_if(prioritized_features.begin(), 
+      remove_if(prioritized_features.begin(),
                 prioritized_features.end(),
                 exceeds_thresh),
       prioritized_features.end()
     );
     if (working_set_size > prioritized_features.size())
       working_set_size = prioritized_features.size();
-  
+
     // Solve subproblem:
-    value_t epsilon = 0.3; 
+    value_t epsilon = 0.3;
     reset_prox_newton_variables();
     while (true) {
       value_t last_subproblem_obj = primal_obj;
       theta_scale = run_prox_newton_iteration(
-                        x, intercept, lambda, loss_function, data); 
+                        x, intercept, lambda, loss_function, data);
 
       primal_loss = loss_function->primal_loss(theta, aux_dual, data);
       l1_penalty = lambda * l1_norm(x, d);
@@ -457,8 +457,8 @@ void Solver::solve(const Dataset *data,
       value_t subprob_duality_gap = primal_obj - subprob_dual_obj;
       if (subprob_duality_gap < epsilon * (primal_obj - dual_obj))
         break;
-      if (subprob_duality_gap / fabs(subprob_dual_obj) < tolerance)
-        break;
+      // if (subprob_duality_gap / fabs(subprob_dual_obj) < tolerance)
+      //  break;
       if (primal_obj >= last_subproblem_obj)
         break;
     }
@@ -473,29 +473,40 @@ void Solver::solve(const Dataset *data,
     timer.pause_timing();
     if (verbose)
       cout << "Time: " << elapsed_time
-           << " Objective: " << primal_obj 
-           << " Duality gap: " << duality_gap 
+           << " Objective: " << primal_obj
+           << " Duality gap: " << duality_gap
            << " Features left: " << prioritized_features.size() << endl;
 
     logger.log_point(elapsed_time, primal_obj);
     timer.continue_timing();
 
     // Test stopping conditions:
-    if ((duality_gap / fabs(dual_obj) < tolerance) &&
-        (elapsed_time > min_time)) {
+    // if ((duality_gap / fabs(dual_obj) < tolerance) &&
+    // if ((duality_gap <= tolerance) &&
+    //     (elapsed_time > min_time)) {
+    //   sprintf(solution_status, "reached stopping tolerance");
+    //   break;
+    // }
+
+    if (duality_gap <= tolerance){
       sprintf(solution_status, "reached stopping tolerance");
       break;
     }
+    // else{
+    //   printf("blitz duality_gap = %E \n", duality_gap);
+    //   int bgurunf = duality_gap <= tolerance;
+    //   printf("test = %d \n", bgurunf);
+    // }
 
-    if (primal_obj >= primal_obj_last) {
-      sprintf(solution_status, "reached machine precision");
-      break;
-    }
+    // if (primal_obj >= primal_obj_last) {
+    //   sprintf(solution_status, "reached machine precision");
+    //   break;
+    // }
 
-    if (elapsed_time > max_time) {
-      sprintf(solution_status, "reached time limit");
-      break;
-    }
+    // if (elapsed_time > max_time) {
+    //   sprintf(solution_status, "reached time limit");
+    //   break;
+    // }
   }
 }
 

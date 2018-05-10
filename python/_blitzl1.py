@@ -85,7 +85,7 @@ def data_as(obj, ctypes_type):
 
 class _L1Problem(object):
   def __init__(self, A, b):
-    self._loss_arg = _char_p(self._LOSS_TYPE)
+    self._loss_arg = _char_p(self._LOSS_TYPE.encode('utf-8'))
     self._load_dataset(A, b)
 
   def _load_dataset(self, A, b):
@@ -146,14 +146,14 @@ class _L1Problem(object):
         os.mkdir(log_directory)
       except:
         pass
-    log_dir_arg = _char_p(log_directory)
+    log_dir_arg = _char_p(log_directory.encode('utf-8'))
 
     # Misc solution variables:
     obj_arg = _value_t()
     duality_gap_arg = _value_t()
     num_itr_arg = _int()
     solution_status = " " * 64
-    solution_status_arg = _char_p(solution_status)
+    solution_status_arg = _char_p(solution_status.encode('utf-8'))
 
     # Solve problem:
     _lib.BlitzL1_solve_problem(_solver, 

@@ -79,7 +79,7 @@ def get_verbose():
 
 def data_as(obj, ctypes_type):
   if obj.dtype != ctypes_type._type_:
-    obj = obj.astype(ctypes_type)
+    obj = obj.astype(ctypes_type._type_)
   return (obj, obj.ctypes.data_as(ctypes_type))
 
 

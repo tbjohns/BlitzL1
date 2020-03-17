@@ -16,6 +16,7 @@ setup(
   description = "Fast, principled, L1-regularized loss minimization",
   package_dir = {"blitzl1": "python"},
   packages = ["blitzl1"],
+  install_requires=['scipy'],
   ext_modules = [ext],
   author = "Tyler B. Johnson",
   author_email = "tyler@tbjohns.com",

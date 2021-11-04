@@ -460,8 +460,8 @@ void Solver::solve(const Dataset *data,
       value_t subprob_duality_gap = primal_obj - subprob_dual_obj;
       if (subprob_duality_gap < epsilon * (primal_obj - dual_obj))
         break;
-      // if (subprob_duality_gap / fabs(subprob_dual_obj) < tolerance)
-      //  break;
+      if (subprob_duality_gap / fabs(subprob_dual_obj) < tolerance)
+       break;
       if (primal_obj >= last_subproblem_obj)
         break;
     }
@@ -485,32 +485,21 @@ void Solver::solve(const Dataset *data,
     timer.continue_timing();
 
     // Test stopping conditions:
-    // if ((duality_gap / fabs(dual_obj) < tolerance) &&
-    // if ((duality_gap <= tolerance) &&
-    //     (elapsed_time > min_time)) {
-    //   sprintf(solution_status, "reached stopping tolerance");
-    //   break;
-    // }
-
-    if (duality_gap <= tolerance){
+    if ((duality_gap / fabs(dual_obj) < tolerance) &&
+        (elapsed_time > min_time)) {
       sprintf(solution_status, "reached stopping tolerance");
       break;
     }
-    // else{
-    //   printf("blitz duality_gap = %E \n", duality_gap);
-    //   int bgurunf = duality_gap <= tolerance;
-    //   printf("test = %d \n", bgurunf);
-    // }
 
-    // if (primal_obj >= primal_obj_last) {
-    //   sprintf(solution_status, "reached machine precision");
-    //   break;
-    // }
+    if (primal_obj >= primal_obj_last) {
+      sprintf(solution_status, "reached machine precision");
+      break;
+    }
 
-    // if (elapsed_time > max_time) {
-    //   sprintf(solution_status, "reached time limit");
-    //   break;
-    // }
+    if (elapsed_time > max_time) {
+      sprintf(solution_status, "reached time limit");
+      break;
+    }
   }
 }
 

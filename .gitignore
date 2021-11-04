@@ -21,3 +21,4 @@ images/src/*.ps
 images/src/*.xml
 images/src/*.snm
 images/src/*.toc
+/python/blitzl1.egg-info/*

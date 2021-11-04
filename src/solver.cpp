@@ -375,6 +375,7 @@ void Solver::solve(const Dataset *data,
                    value_t &primal_obj,
                    value_t &duality_gap,
                    int &itr_counter,
+                   int max_iter,
                    const char *log_directory) {
 
   // Solves l1-regularized loss minimization problem

@@ -76,6 +76,7 @@ namespace BlitzL1 {
                  value_t &primal_obj,
                  value_t &duality_gap,
                  int &itr_counter,
+                 int max_iter,
                  const char* log_directory);
 
       value_t compute_lambda_max(const Dataset *data, const char* loss_type);

@@ -30,7 +30,7 @@ _lib.BlitzL1_get_label_i.argtype = [_pointer, _index_t]
 _lib.BlitzL1_new_solver.restype = _pointer
 _lib.BlitzL1_new_solver.argtype = None
 _lib.BlitzL1_solve_problem.restype = None
-_lib.BlitzL1_solve_problem.argtype = [_pointer, _pointer, _value_t, _char_p, _value_t_p, _value_t, _char_p, _value_t, _value_t, _int, _char_p]
+_lib.BlitzL1_solve_problem.argtype = [_pointer, _pointer, _value_t, _char_p, _value_t_p, _value_t, _char_p, _value_t, _value_t, _int, _int, _char_p]
 _lib.BlitzL1_set_tolerance.restype = None
 _lib.BlitzL1_set_tolerance.argtype = [_pointer, _value_t]
 _lib.BlitzL1_get_tolerance.restype = _value_t
@@ -122,7 +122,8 @@ class _L1Problem(object):
             l1_penalty, 
             initial_x=None, 
             initial_intercept=None, 
-            log_directory=""):
+            log_directory="",
+            max_iter=20):
 
     (n, d) = self._shape
 
@@ -139,6 +140,8 @@ class _L1Problem(object):
 
     # Regularization strength:
     lambda_arg = _value_t(l1_penalty)
+    # Maximum number of iterations
+    max_iter_arg = _int(max_iter)
 
     # Log directory:
     if log_directory:
@@ -166,6 +169,7 @@ class _L1Problem(object):
                                ctypes.byref(obj_arg), 
                                ctypes.byref(duality_gap_arg), 
                                ctypes.byref(num_itr_arg),
+                               max_iter_arg,
                                log_dir_arg) 
 
     solution_status = solution_status.strip().strip('\x00')

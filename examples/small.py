@@ -1,3 +1,4 @@
+from IPython import embed
 import blitzl1
 
 import sys
@@ -20,5 +21,4 @@ lammax = prob.compute_lambda_max()
 print "lammax is", lammax
 sol = prob.solve(lammax * 0.1)
 
-from IPython import embed
 embed()

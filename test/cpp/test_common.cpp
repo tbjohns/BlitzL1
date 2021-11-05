@@ -3,14 +3,15 @@
 #include <math.h>
 #include <vector>
 #include <iostream>
-using std::vector;
 using std::cerr;
 using std::cout;
 using std::endl;
+using std::vector;
 
 using namespace BlitzL1;
 
-void test_SparseColumnFromPointers() {
+void test_SparseColumnFromPointers()
+{
   value_t values[3] = {2.0, 3.0, 5.0};
   index_t indices[3] = {0, 1, 9};
   index_t nnz = 3;
@@ -19,11 +20,12 @@ void test_SparseColumnFromPointers() {
 
   vector<value_t> vec;
   for (index_t i = 1; i <= length; ++i)
-    vec.push_back((value_t) i);
+    vec.push_back((value_t)i);
   vector<value_t> vec2;
 
-  for (index_t i = 0; i < length; ++i) {
-    if (i % 2 == 0) 
+  for (index_t i = 0; i < length; ++i)
+  {
+    if (i % 2 == 0)
       vec2.push_back(0.7);
     else
       vec2.push_back(0.0);
@@ -38,7 +40,7 @@ void test_SparseColumnFromPointers() {
   if (c->l2_norm() != sqrt(38.0))
     cerr << "Test SparseColumnFromPointers l2_norm failed" << endl;
 
-  if (c->l2_norm_centered() != sqrt(28.0)) 
+  if (c->l2_norm_centered() != sqrt(28.0))
     cerr << "Test SparseColumnFromPointers l2_norm_centered failed" << endl;
 
   if (c->inner_product(vec) != 58.0)
@@ -55,18 +57,20 @@ void test_SparseColumnFromPointers() {
     cerr << "Test SparseColumnFromPointers add_multiple failed" << endl;
 }
 
-void test_DenseColumnFromPointers() {
+void test_DenseColumnFromPointers()
+{
   value_t values[10] = {2.0, 3.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 5.0};
   index_t length = 10;
   Column *c = new DenseColumnFromPointers(values, length);
 
   vector<value_t> vec;
   for (index_t i = 1; i <= length; ++i)
-    vec.push_back((value_t) i);
+    vec.push_back((value_t)i);
 
   vector<value_t> vec2;
-  for (index_t i = 0; i < length; ++i) {
-    if (i % 2 == 0) 
+  for (index_t i = 0; i < length; ++i)
+  {
+    if (i % 2 == 0)
       vec2.push_back(0.7);
     else
       vec2.push_back(0.0);
@@ -81,7 +85,7 @@ void test_DenseColumnFromPointers() {
   if (c->l2_norm() != sqrt(38.0))
     cerr << "Test DenseColumnFromPointers l2_norm failed" << endl;
 
-  if (c->l2_norm_centered() != sqrt(28.0)) 
+  if (c->l2_norm_centered() != sqrt(28.0))
     cerr << "Test DenseColumnFromPointers l2_norm_centered failed" << endl;
 
   if (c->inner_product(vec) != 58.0)
@@ -98,7 +102,8 @@ void test_DenseColumnFromPointers() {
     cerr << "Test DenseColumnFromPointers add_multiple failed" << endl;
 }
 
-void test_DatasetFromCSCPointers() {
+void test_DatasetFromCSCPointers()
+{
   index_t indptr[6] = {0, 1, 2, 4, 6, 7};
   index_t indices[7] = {1, 0, 1, 2, 1, 2, 0};
   value_t values[7] = {-2, 1, 3, 1, 1, 2, 1};
@@ -126,7 +131,8 @@ void test_DatasetFromCSCPointers() {
     cerr << "Test DatasetFromCSCPointers last label failed" << endl;
 }
 
-void test_DatasetFromFContiguousPointer() {
+void test_DatasetFromFContiguousPointer()
+{
   value_t values[15] = {0, -2, 0, 1, 0, 0, 0, 3, 1, 0, 1, 2, 1, 0, 0};
   value_t labels[3] = {-1, 0.5, 1.5};
   Dataset *data = new DatasetFromFContiguousPointer(values, labels, 3, 5);
@@ -152,7 +158,8 @@ void test_DatasetFromFContiguousPointer() {
     cerr << "Test DatasetFromFContiguousPointer last label failed" << endl;
 }
 
-void test_Math() {
+void test_Math()
+{
   vector<value_t> vec;
   vec.assign(10, 0.0);
   vec[0] = -5.0;
@@ -168,7 +175,7 @@ void test_Math() {
 
   if (sum_vector(vec) != 9.0)
     cerr << "Test Math sum_vector failed" << endl;
-  if (sum_array(&vec[0], 10) != 9.0) 
+  if (sum_array(&vec[0], 10) != 9.0)
     cerr << "Test Math sum_array failed" << endl;
 
   vector<value_t> scale_vec(vec);
@@ -180,7 +187,6 @@ void test_Math() {
   copy_and_scale_vector(vec, 0.25, scale_vec);
   if (scale_vec[9] != 3.0)
     cerr << "Test Math copy_and_scale_vector failed" << endl;
-
 
   vector<value_t> vec2;
   vec2.assign(10, 1.0);
@@ -208,11 +214,10 @@ void test_Math() {
 
   value_t x[5] = {-1.0, -1.5, 0.0, 0.0, 3.3};
   if (l1_norm(x, 5) != 5.8)
-    cerr << "Test Math l1_norm failed" << endl; 
+    cerr << "Test Math l1_norm failed" << endl;
 
   if (l0_norm(x, 5) != 3)
     cerr << "Test l0_norm failed" << endl;
-
 
   vector<value_t> vec4;
   vector<value_t> vec5;
@@ -224,7 +229,8 @@ void test_Math() {
     cerr << "Test l2_norm_diff_sq failed" << endl;
 }
 
-int main() {
+int main()
+{
   test_SparseColumnFromPointers();
   test_DenseColumnFromPointers();
   test_DatasetFromCSCPointers();

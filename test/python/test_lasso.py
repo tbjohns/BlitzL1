@@ -24,19 +24,19 @@ def test_SimpleLasso():
     prob = blitzl1.LassoProblem(A, b)
     sol = prob.solve(1)
     if not approx_equal(sol.x[0], 4.0) or not approx_equal(sol.x[3], -2.75):
-        print "test SimpleLasso basic failed"
+        print("test SimpleLasso basic failed")
 
     blitzl1.set_use_intercept(True)
     sol = prob.solve(1)
     if not approx_equal(sol.intercept, -0.25):
-        print "test SimpleLasso intercept failed"
+        print("test SimpleLasso intercept failed")
 
     if not approx_equal(sol.objective_value, 9.75):
-        print "test SimpleLasso obj failed"
+        print("test SimpleLasso obj failed")
 
     python_obj = sol.evaluate_loss(A, b) + np.linalg.norm(sol.x, ord=1)
     if not approx_equal(sol.objective_value, python_obj):
-        print "test SimpleLasso python_obj failed"
+        print("test SimpleLasso python_obj failed")
 
 
 def test_SmallLasso():
@@ -49,15 +49,15 @@ def test_SmallLasso():
     prob = blitzl1.LassoProblem(A, b)
     sol = prob.solve(2)
     if not approx_equal(sol.objective_value, 0.4875):
-        print "test SmallLasso obj failed"
+        print("test SmallLasso obj failed")
 
     save_path = "/tmp/blitzl1_save_test"
     sol.save(save_path)
     sol2 = blitzl1.load_solution(save_path)
     if not np.all(sol.x == sol2.x):
-        print "test SmallLasso save_x failed"
+        print("test SmallLasso save_x failed")
     if sol.objective_value != sol2.objective_value:
-        print "test SmallLasso save_obj failed"
+        print("test SmallLasso save_obj failed")
     os.remove(save_path)
 
     blitzl1.set_tolerance(0.1)
@@ -74,9 +74,9 @@ def test_SmallLasso():
             break
         log_point += 1
     if not approx_equal(obj, sol.objective_value):
-        print "test SmallLasso log_obj failed"
+        print("test SmallLasso log_obj failed")
     if time <= 0.0:
-        print "test SmallLasso log_time failed"
+        print("test SmallLasso log_time failed")
     os.system("rm -r %s" % log_path)
 
 

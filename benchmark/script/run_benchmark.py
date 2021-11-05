@@ -6,6 +6,7 @@ from scipy import sparse
 from sklearn.datasets import load_svmlight_file
 import time
 import datetime
+import blitzl1
 
 pwd = os.path.abspath(os.path.dirname(__file__))
 sys.path.append(os.path.join(pwd, "../.."))
@@ -58,7 +59,7 @@ def main():
     experiment_names = []
     experiment_times = []
     for line in conf_file:
-        print "\n\n", line
+        print("\n\n", line)
         line_values = line.split()
         dataset_name = line_values[0]
         loss_type = line_values[1]
@@ -76,7 +77,7 @@ def main():
             b = format_b(b)
             prob = blitzl1.LogRegProblem(A_csc, b)
         else:
-            print "loss function not recognized"
+            print("loss function not recognized")
         lammax = prob.compute_lambda_max()
 
         blitzl1.set_tolerance(1e-5)

@@ -1,6 +1,8 @@
+[![](https://github.com/tbjohns/blitzl1/workflows/build/badge.svg?branch=master)](https://github.com/tbjohns/blitzl1/actions?query=workflow%3Abuild?branch=master)
+
 # BlitzL1
 
-BlitzL1 is a fast, scalable library for minimizing L1-regularized losses.  L1-regularized learning is widely used in statistics and machine learning as it fits a function to data while simultaneously encouraging the result to be sparse (only a fraction of features used for prediction).  
+BlitzL1 is a fast, scalable library for minimizing L1-regularized losses.  L1-regularized learning is widely used in statistics and machine learning as it fits a function to data while simultaneously encouraging the result to be sparse (only a fraction of features used for prediction).
 
 Specifically, Blitz solves the following problems:
 
@@ -22,3 +24,5 @@ prob = blitzl1.LogRegProblem(A, b)
 sol = prob.solve(1.0)
 ```
 Of course there is much more than that, so please play around.  Early feedback is much appreciated!
+
+

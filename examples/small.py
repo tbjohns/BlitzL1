@@ -18,7 +18,7 @@ b = np.random.randn(n)
 
 prob = blitzl1.LassoProblem(A, b)
 lammax = prob.compute_lambda_max()
-print "lammax is", lammax
+print("lammax is", lammax)
 sol = prob.solve(lammax * 0.1)
 
 embed()

@@ -3,14 +3,15 @@
 
 #include <vector>
 #include <iostream>
-using std::vector;
 using std::cerr;
 using std::cout;
 using std::endl;
+using std::vector;
 
 using namespace BlitzL1;
 
-void test_SquaredLoss() {
+void test_SquaredLoss()
+{
 
   Loss *loss = new SquaredLoss();
 
@@ -29,7 +30,7 @@ void test_SquaredLoss() {
   loss->compute_dual_points(Ax, theta, aux_dual, data);
   if (theta[0] != 1.0 || theta[1] != -0.5 || theta[2] != 0.5)
     cerr << "Test SquaredLoss compute_dual_points failed" << endl;
-  
+
   if (loss->primal_loss(theta, Ax, data) != 0.75)
     cerr << "Test SquaredLoss primal_loss failed" << endl;
 
@@ -40,7 +41,8 @@ void test_SquaredLoss() {
     cerr << "Test SquaredLoss L failed" << endl;
 }
 
-int main() {
+int main()
+{
   test_SquaredLoss();
   return 0;
 }

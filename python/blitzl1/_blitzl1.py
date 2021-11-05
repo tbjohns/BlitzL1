@@ -191,9 +191,9 @@ class _L1Problem(object):
 
 
 def load_solution(filepath):
-    in_file = open(filepath)
+    in_file = open(filepath, 'rb')
     sol = pickle.load(in_file)
-    in_file.close
+    in_file.close()
     return sol
 
 
@@ -214,7 +214,7 @@ class _Solution(object):
             return np.dot(A, self.x) + self.intercept
 
     def save(self, filepath):
-        out_file = open(filepath, "w")
+        out_file = open(filepath, "wb")
         pickle.dump(self, out_file)
         out_file.close()
 

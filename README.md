@@ -1,4 +1,4 @@
-[![](https://github.com/tbjohns/blitzl1/workflows/build/badge.svg?branch=master)](https://github.com/tbjohns/blitzl1/actions?query=workflow%3Abuild?branch=master)
+[![](https://github.com/tbjohns/blitzl1/workflows/build/badge.svg?branch=master)](hhttps://github.com/tbjohns/blitzl1/actions?query=workflow%3Abuild+branch%3Amaster)
 
 # BlitzL1
 

@@ -412,6 +412,7 @@ namespace BlitzL1
                      value_t &primal_obj,
                      value_t &duality_gap,
                      int &itr_counter,
+                     int max_iter,
                      const char *log_directory)
   {
 
@@ -447,8 +448,10 @@ namespace BlitzL1
     primal_obj = primal_loss + l1_penalty;
 
     // Main Blitz loop:
-    while (++itr_counter)
+    // while (++itr_counter) {
+    for (size_t iter = 0; iter < max_iter; ++iter)
     {
+      ++itr_counter;
       value_t primal_obj_last = primal_obj;
 
       update_ATtheta(data);
@@ -511,7 +514,8 @@ namespace BlitzL1
       double elapsed_time = timer.elapsed_time();
       timer.pause_timing();
       if (verbose)
-        cout << "Time: " << elapsed_time
+        cout << "Iter: " << itr_counter
+             << " Time: " << elapsed_time
              << " Objective: " << primal_obj
              << " Duality gap: " << duality_gap
              << " Features left: " << prioritized_features.size() << endl;

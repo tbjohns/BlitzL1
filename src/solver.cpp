@@ -161,6 +161,7 @@ namespace BlitzL1
     {
 
       // Shuffle indices:
+      std::srand(0);
       random_shuffle(rand_permutation.begin(), rand_permutation.end());
       for (size_t rp_ind = 0; rp_ind < working_set_size; ++rp_ind)
       {

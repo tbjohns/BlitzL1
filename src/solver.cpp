@@ -145,6 +145,8 @@ namespace BlitzL1
 
       // Set up gradient values:
       prox_newton_grad_cache.resize(working_set_size);
+      cout << "###########################" << endl;
+      cout << "Working set size " << working_set_size << endl;
       for (size_t ind = 0; ind < working_set_size; ++ind)
       {
         size_t j = prioritized_features[ind];
@@ -157,8 +159,10 @@ namespace BlitzL1
     }
 
     // Approximately solve for newton direction:
+    cout << "#####################" << endl;
     for (int cd_itr = 0; cd_itr < max_cd_itr; ++cd_itr)
     {
+      cout << "Number iter cd " << cd_itr << endl;
 
       // Shuffle indices:
       random_shuffle(rand_permutation.begin(), rand_permutation.end());
@@ -452,6 +456,8 @@ namespace BlitzL1
     for (size_t iter = 0; iter < max_iter; ++iter)
     {
       ++itr_counter;
+      cout << "####################################" << endl;
+      cout << "Number iter outer " << iter << endl;
       value_t primal_obj_last = primal_obj;
 
       update_ATtheta(data);
@@ -485,8 +491,13 @@ namespace BlitzL1
       // Solve subproblem:
       value_t epsilon = 0.3;
       reset_prox_newton_variables();
+      int i = 0;
       while (true)
       {
+      i += 1;
+      cout << "##################################" << endl;
+      cout << "Number iter PN " << i << endl;
+
         value_t last_subproblem_obj = primal_obj;
         theta_scale = run_prox_newton_iteration(
             x, intercept, lambda, loss_function, data);

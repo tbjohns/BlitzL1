@@ -60,6 +60,8 @@ void LogisticLoss::compute_dual_points(
     value_t minus_label = -data->get_label(i);
     aux_dual[i] = exp(minus_label * Ax[i]);
     theta[i] = minus_label * aux_dual[i] / (1.0 + aux_dual[i]);
+    // - y[i] * exp(-Ax[i] * y[i]) / (1 + exp(-Ax[i] * y[i]))
+    // (gradient_scalar in Logistic Loss in skglm)
   }
 }
 

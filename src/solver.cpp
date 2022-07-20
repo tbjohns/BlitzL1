@@ -129,6 +129,7 @@ namespace BlitzL1
     {
       size_t j = prioritized_features[ind];
       hess_cache[ind] = data->get_column(j)->h_norm_sq(H);
+      // hessian in skglm
     }
 
     // Cache values for updating intercept:
@@ -151,6 +152,7 @@ namespace BlitzL1
       {
         size_t j = prioritized_features[ind];
         prox_newton_grad_cache[ind] = data->get_column(j)->inner_product(theta);
+        // bias in skglm (gradient_scalar)
       }
     }
     else
@@ -214,6 +216,7 @@ namespace BlitzL1
 
       if (sum_sq_hess_diff < prox_newton_epsilon && cd_itr + 1 >= MIN_PROX_NEWTON_CD_ITR)
       {
+        cout << "Exited! sum_sq_hess_diff: " << sum_sq_hess_diff << endl;
         break;
       }
     }
@@ -417,6 +420,7 @@ namespace BlitzL1
                      value_t &duality_gap,
                      int &itr_counter,
                      int max_iter,
+                     int p0,
                      const char *log_directory)
   {
 
@@ -470,23 +474,23 @@ namespace BlitzL1
 
       // Determine working set size:
       working_set_size = 2 * l0_norm(x, d);
-      if (working_set_size < 100)
-        working_set_size = 100;
+      if (working_set_size < p0)
+        working_set_size = p0;
       if (working_set_size > prioritized_features.size())
         working_set_size = prioritized_features.size();
 
       prioritize_features(data, lambda, x, working_set_size);
 
       // Eliminate features:
-      value_t thresh = sqrt(2 * duality_gap / loss_function->L);
-      IndirectExceedsThreshold exceeds_thresh(feature_priorities, thresh);
-      prioritized_features.erase(
-          remove_if(prioritized_features.begin(),
-                    prioritized_features.end(),
-                    exceeds_thresh),
-          prioritized_features.end());
-      if (working_set_size > prioritized_features.size())
-        working_set_size = prioritized_features.size();
+      // value_t thresh = sqrt(2 * duality_gap / loss_function->L);
+      // IndirectExceedsThreshold exceeds_thresh(feature_priorities, thresh);
+      // prioritized_features.erase(
+      //     remove_if(prioritized_features.begin(),
+      //               prioritized_features.end(),
+      //               exceeds_thresh),
+      //     prioritized_features.end());
+      // if (working_set_size > prioritized_features.size())
+      //   working_set_size = prioritized_features.size();
 
       // Solve subproblem:
       value_t epsilon = 0.3;
@@ -508,12 +512,18 @@ namespace BlitzL1
         value_t subprob_dual_obj = loss_function->dual_obj(theta, data, theta_scale);
 
         value_t subprob_duality_gap = primal_obj - subprob_dual_obj;
-        if (subprob_duality_gap < epsilon * (primal_obj - dual_obj))
+        if (subprob_duality_gap < epsilon * (primal_obj - dual_obj)) {
+          cout << "exited PN via first criterion" << endl;
           break;
-        if (subprob_duality_gap / fabs(subprob_dual_obj) < tolerance)
+        }
+        if (subprob_duality_gap / fabs(subprob_dual_obj) < tolerance) {
+          cout << "exited PN via second criterion" << endl;
           break;
-        if (primal_obj >= last_subproblem_obj)
+        }
+        if (primal_obj >= last_subproblem_obj) {
+          cout << "exited PN via third criterion" << endl;
           break;
+        }
       }
 
       primal_loss = loss_function->primal_loss(theta, aux_dual, data);

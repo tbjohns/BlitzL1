@@ -134,6 +134,7 @@ class _L1Problem(object):
               initial_x=None,
               initial_intercept=None,
               log_directory="",
+              p0=10,
               max_iter=20):
 
         (n, d) = self._shape
@@ -153,6 +154,8 @@ class _L1Problem(object):
         lambda_arg = _value_t(l1_penalty)
         # Maximum number of iterations
         max_iter_arg = _int(max_iter)
+        # Initial working set size
+        p0_arg = _int(p0)
 
         # Log directory:
         if log_directory:
@@ -181,6 +184,7 @@ class _L1Problem(object):
                                    ctypes.byref(duality_gap_arg),
                                    ctypes.byref(num_itr_arg),
                                    max_iter_arg,
+                                   p0_arg,
                                    log_dir_arg)
 
         solution_status = solution_status.strip().strip('\x00')

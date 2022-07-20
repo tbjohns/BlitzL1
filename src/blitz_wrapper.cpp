@@ -107,9 +107,10 @@ extern "C"
                              value_t &duality_gap,
                              int &num_iterations,
                              int max_iter,
+                             int p0,
                              char *log_dir)
   {
     solver->solve(data, lambda, loss_type, x, intercept, solution_status,
-                  primal_obj, duality_gap, num_iterations, max_iter, log_dir);
+                  primal_obj, duality_gap, num_iterations, max_iter, p0, log_dir);
   }
 }

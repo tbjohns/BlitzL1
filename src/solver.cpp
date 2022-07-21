@@ -146,8 +146,6 @@ namespace BlitzL1
 
       // Set up gradient values:
       prox_newton_grad_cache.resize(working_set_size);
-      cout << "###########################" << endl;
-      cout << "Working set size " << working_set_size << endl;
       for (size_t ind = 0; ind < working_set_size; ++ind)
       {
         size_t j = prioritized_features[ind];
@@ -161,10 +159,10 @@ namespace BlitzL1
     }
 
     // Approximately solve for newton direction:
-    cout << "#####################" << endl;
+    int counter_inner_loop = 0;
     for (int cd_itr = 0; cd_itr < max_cd_itr; ++cd_itr)
     {
-      cout << "Number iter cd " << cd_itr << endl;
+      counter_inner_loop += 1;
 
       // Shuffle indices:
       random_shuffle(rand_permutation.begin(), rand_permutation.end());
@@ -216,10 +214,11 @@ namespace BlitzL1
 
       if (sum_sq_hess_diff < prox_newton_epsilon && cd_itr + 1 >= MIN_PROX_NEWTON_CD_ITR)
       {
-        cout << "Exited! sum_sq_hess_diff: " << sum_sq_hess_diff << endl;
+        // cout << "Exited! sum_sq_hess_diff: " << sum_sq_hess_diff << endl;
         break;
       }
     }
+    cout << counter_inner_loop << " - ";
 
     // Apply update with backtracking:
     value_t t = 1.0;
@@ -460,8 +459,7 @@ namespace BlitzL1
     for (size_t iter = 0; iter < max_iter; ++iter)
     {
       ++itr_counter;
-      cout << "####################################" << endl;
-      cout << "Number iter outer " << iter << endl;
+      // cout << endl;
       value_t primal_obj_last = primal_obj;
 
       update_ATtheta(data);
@@ -495,13 +493,8 @@ namespace BlitzL1
       // Solve subproblem:
       value_t epsilon = 0.3;
       reset_prox_newton_variables();
-      int i = 0;
       while (true)
       {
-      i += 1;
-      cout << "##################################" << endl;
-      cout << "Number iter PN " << i << endl;
-
         value_t last_subproblem_obj = primal_obj;
         theta_scale = run_prox_newton_iteration(
             x, intercept, lambda, loss_function, data);
@@ -513,15 +506,15 @@ namespace BlitzL1
 
         value_t subprob_duality_gap = primal_obj - subprob_dual_obj;
         if (subprob_duality_gap < epsilon * (primal_obj - dual_obj)) {
-          cout << "exited PN via first criterion" << endl;
+          // cout << "exited PN via first criterion" << endl;
           break;
         }
         if (subprob_duality_gap / fabs(subprob_dual_obj) < tolerance) {
-          cout << "exited PN via second criterion" << endl;
+          // cout << "exited PN via second criterion" << endl;
           break;
         }
         if (primal_obj >= last_subproblem_obj) {
-          cout << "exited PN via third criterion" << endl;
+          // cout << "exited PN via third criterion" << endl;
           break;
         }
       }
@@ -535,7 +528,8 @@ namespace BlitzL1
       double elapsed_time = timer.elapsed_time();
       timer.pause_timing();
       if (verbose)
-        cout << "Iter: " << itr_counter
+        cout << "           "
+             << "Iter: " << itr_counter
              << " Time: " << elapsed_time
              << " Objective: " << primal_obj
              << " Duality gap: " << duality_gap
@@ -563,6 +557,7 @@ namespace BlitzL1
         sprintf(solution_status, "reached time limit");
         break;
       }
+      // go to line in the file
     }
   }
 

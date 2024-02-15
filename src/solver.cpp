@@ -449,7 +449,7 @@ namespace BlitzL1
 
     // Main Blitz loop:
     // while (++itr_counter) {
-    for (size_t iter = 0; iter < max_iter; ++iter)
+    for (int iter = 0; iter < max_iter; ++iter)
     {
       ++itr_counter;
       value_t primal_obj_last = primal_obj;

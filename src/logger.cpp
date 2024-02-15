@@ -11,7 +11,7 @@ void Logger::log_value(char *name, value_t value)
   FILE *out_file;
   char file_path[256];
 
-  sprintf(file_path, "%s/%s.%d", log_directory, name, num_points_logged);
+  snprintf(file_path, "%s/%s.%d", log_directory, name, num_points_logged);
   out_file = fopen(file_path, "w");
   if (out_file == NULL)
   {

@@ -527,19 +527,19 @@ namespace BlitzL1
       if ((duality_gap / fabs(dual_obj) < tolerance) &&
           (elapsed_time > min_time))
       {
-        snprintf(solution_status, "reached stopping tolerance");
+        snprintf(solution_status, strlen(solution_status), "reached stopping tolerance");
         break;
       }
 
       if (primal_obj >= primal_obj_last)
       {
-        snprintf(solution_status, "reached machine precision");
+        snprintf(solution_status, strlen(solution_status), "reached machine precision");
         break;
       }
 
       if (elapsed_time > max_time)
       {
-        snprintf(solution_status, "reached time limit");
+        snprintf(solution_status, strlen(solution_status), "reached time limit");
         break;
       }
     }

@@ -157,8 +157,8 @@ namespace BlitzL1
       prox_newton_epsilon = PROX_NEWTON_EPSILON_RATIO * prox_newton_grad_diff;
     }
 
-    std::random_device rd;
-    std::mt19937 g(rd());
+    // std::random_device rd;
+    std::mt19937 g(0);
 
     // Approximately solve for newton direction:
     for (int cd_itr = 0; cd_itr < max_cd_itr; ++cd_itr)

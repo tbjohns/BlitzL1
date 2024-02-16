@@ -8,6 +8,7 @@
 #include <iostream>
 #include <algorithm>
 #include <limits>
+#include <random>
 
 using std::cout;
 using std::endl;
@@ -156,12 +157,15 @@ namespace BlitzL1
       prox_newton_epsilon = PROX_NEWTON_EPSILON_RATIO * prox_newton_grad_diff;
     }
 
+    std::random_device rd;
+    std::mt19937 g(rd());
+
     // Approximately solve for newton direction:
     for (int cd_itr = 0; cd_itr < max_cd_itr; ++cd_itr)
     {
 
       // Shuffle indices:
-      random_shuffle(rand_permutation.begin(), rand_permutation.end());
+      shuffle(rand_permutation.begin(), rand_permutation.end(), g);
       for (size_t rp_ind = 0; rp_ind < working_set_size; ++rp_ind)
       {
         size_t new_index = rand_permutation[rp_ind];
